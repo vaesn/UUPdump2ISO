@@ -28,30 +28,26 @@ jobs:
     concurrency:
       group: ${{ github.workflow }} # 独立的并发队列，互不干扰
       cancel-in-progress: true
-    steps:
-      - name: 🔄 Windows10_22H2_amd64_Cumulative_Update
-        
-
-        with:
-          # -----------------------------------------
-          # 必填参数 (对应原 FILE_NAME)
-          # -----------------------------------------
-          file_name: 'Windows10_22H2_amd64_Cumulative_Update'
-          
-          # -----------------------------------------
-          # 可选参数 (留空则使用 Reusable Workflow 中的默认值)
-          # -----------------------------------------
-          
-          # 如果在手动触发时输入了版本号，则传递进去；否则传空字符串
-          force_version: ${{ inputs.force_version }}
-          
-          # 如果你想自定义分卷大小，取消下面注释
-          volume_size: ${{ inputs.volume_size }} 
-          
-          # 构建超时时间 (默认 180 分钟)
-          build_timeout: 300
-          
-          # 压缩线程数 (默认 2)
-          compress_threads: 2
-        
+    with:
+      # -----------------------------------------
+      # 必填参数 (对应原 FILE_NAME)
+      # -----------------------------------------
+      file_name: 'Windows10_22H2_amd64_Cumulative_Update'
+      
+      # -----------------------------------------
+      # 可选参数 (留空则使用 Reusable Workflow 中的默认值)
+      # -----------------------------------------
+      
+      # 如果在手动触发时输入了版本号，则传递进去；否则传空字符串
+      force_version: ${{ inputs.force_version }}
+      
+      # 如果你想自定义分卷大小，取消下面注释
+      volume_size: ${{ inputs.volume_size }} 
+      
+      # 构建超时时间 (默认 180 分钟)
+      build_timeout: 300
+      
+      # 压缩线程数 (默认 2)
+      compress_threads: 2
+    
 
