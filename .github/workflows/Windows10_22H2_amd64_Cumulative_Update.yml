@@ -29,7 +29,8 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: 🔄 Windows10_22H2_amd64_Cumulative_Update
-        uses: ./.github/workflows/reusable-windows-build.yml
+        uses: .github/workflows/reusable-windows-build.yml
+
         with:
           # -----------------------------------------
           # 必填参数 (对应原 FILE_NAME)
