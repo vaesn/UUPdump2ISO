@@ -29,7 +29,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: 🔄 Windows10_22H2_amd64_Cumulative_Update
-        uses: .github/workflows/reusable-windows-build.yml
+        uses: vaesn/UUPdump2ISO/.github/workflows/reusable-windows-build.yml@main
 
         with:
           # -----------------------------------------
