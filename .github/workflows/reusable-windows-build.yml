@@ -1,0 +1,345 @@
+name: reusable-windows-build
+
+# ==========================================
+# 并发控制
+# ==========================================
+#concurrency:
+#  group: ${{ inputs.file_name }}
+#  cancel-in-progress: true
+on:
+  workflow_call:
+    inputs:
+      # 对应原 FILE_NAME
+      file_name:
+        description: '基础文件/目录名 (对应原 FILE_NAME)'
+        required: true
+        type: string
+        #default: ''
+      
+      # 对应原 force_version
+      force_version:
+        description: '强制指定版本号 (留空则自动提取)'
+        required: false
+        type: string
+        #default: ''
+      
+      # 对应原 VOLUME_SIZE
+      volume_size:
+        description: '分卷大小 (对应原 VOLUME_SIZE)'
+        required: false
+        type: string
+        default: '1536M'
+      
+      # 对应原 BUILD_TIMEOUT
+      build_timeout:
+        description: '构建超时时间 (分钟, 对应原 BUILD_TIMEOUT)'
+        required: false
+        type: number
+        default: 300
+      
+      # 对应原 COMPRESS_THREADS
+      compress_threads:
+        description: '压缩线程数 (对应原 COMPRESS_THREADS)'
+        required: false
+        type: number
+        default: 2
+
+    # Secrets 通常不需要显式声明，除非需要特殊权限，但 GITHUB_TOKEN 默认可用
+    secrets:
+      gh_token:
+        description: 'GitHub Token (用于发布 Release)'
+        required: false
+
+#  workflow_dispatch:
+#    inputs:
+      # 为了在手动触发时也能传入参数，这里镜像一份 inputs
+      # 注意：调用 Reusable Workflow 时，这里的 inputs 仅供顶层 Dispatcher 使用
+      # 实际传递逻辑由 Caller 决定，但为了保持单文件可独立运行/测试的完整性，保留此结构
+#      file_name:
+#        description: '基础文件/目录名'
+#        required: true
+#        default: 'Windows10_22H2_amd64_Cumulative_Update'
+#      force_version:
+#        description: '强制指定版本号'
+#        required: false
+#        default: ''
+#      volume_size:
+#        description: '分卷大小'
+#        required: false
+#        default: '1024M'
+#      build_timeout:
+#        description: '构建超时时间 (分钟)'
+#        required: false
+#        default: 720
+#      compress_threads:
+#        description: '压缩线程数'
+#        required: false
+#        default: 2
+
+  # 保留原定时任务逻辑（作为默认行为的示例，实际使用时建议在 Caller Workflow 中定义）
+#  schedule:
+    # 北京时间：每季度末月(3,6,9,12月)25号 凌晨 1:00
+    # UTC时间：对应日期的 17:00
+    #- cron: '0 17 25 3,6,9,12 *'
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    name: 🚀 Build & Release ISO
+    runs-on: windows-latest
+
+    # ==========================================
+    # Reusable Workflow 核心转换区：
+    # 将 inputs 映射回 env，确保 Steps 中的代码完全不需要修改
+    # ==========================================
+    env:
+      # 使用 inputs 的值，如果 inputs 为空（例如非 workflow_call 触发），则回退到默认值
+      #FILE_NAME: ${{ inputs.file_name || 'Windows10_22H2_amd64_Cumulative_Update' }}
+      FILE_NAME: ${{ inputs.file_name }}
+      VOLUME_SIZE: ${{ inputs.volume_size || '1536M' }}
+      BUILD_TIMEOUT: ${{ inputs.build_timeout || 180 }}
+      COMPRESS_THREADS: ${{ inputs.compress_threads || 2 }}
+      
+      # 将 force_version 存入 env，供 Step 读取
+      FORCE_VERSION_INPUT: ${{ inputs.force_version }}
+
+    # 输出变量，供其他 Job 或 Steps 引用
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      tag_name: ${{ steps.setup.outputs.tag_name }}
+      asset_name: ${{ steps.setup.outputs.asset_name }}
+
+    steps:
+      # ==========================================
+      # Phase 1: 初始化与环境准备
+      # ==========================================
+      - name: 🟢 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧹Pre-Cleanup (Free Disk Space)
+        shell: pwsh
+        run: |
+          # Windows Runner 磁盘空间紧张，主动清理不必要的组件
+          Write-Host "🧹 清理系统缓存以释放空间..."
+          Remove-Item -Path "C:\Program Files\Android" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "C:\Program Files\Microsoft Visual Studio" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "C:\Program Files (x86)\Microsoft Visual Studio" -Recurse -Force -ErrorAction SilentlyContinue
+          # 清理 Chocolatey 缓存
+          if (Test-Path "$env:TEMP\chocolatey") { Remove-Item "$env:TEMP\chocolatey" -Recurse -Force }
+          # 显示剩余空间
+          $c = Get-PSDrive C
+          Write-Host "✅ 剩余磁盘空间: $([math]::Round($c.Free / 1GB, 2)) GB"
+
+      # ==========================================
+      # Phase 2: 元数据解析
+      # ==========================================
+      - name: 🔍 Resolve Version Metadata
+        id: setup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $scriptDir = "${{ env.FILE_NAME }}"
+          $cmdFile = Join-Path $scriptDir "uup_download_windows.cmd"
+          $version = ""
+          
+          Write-Host "🔍 开始解析版本元数据..."
+
+          # 1. 检查目录是否存在
+          if (-not (Test-Path $scriptDir)) {
+            throw "❌ 目录不存在: $scriptDir"
+          }
+
+          # 2. 尝试获取用户指定的版本 (修改为读取 env 变量)
+          if (-not [string]::IsNullOrWhiteSpace("${{ env.FORCE_VERSION_INPUT }}")) {
+            $version = "${{ env.FORCE_VERSION_INPUT }}"
+            Write-Host "🔧 使用用户强制指定版本: $version"
+          }
+          else {
+            # 3. 自动解析：从 CMD 文件中提取
+            # 逻辑：读取文件，优先从 title 行提取，失败则提取第二行的生成时间
+            if (-not (Test-Path $cmdFile)) {
+              throw "❌ 找不到 UUP 脚本: $cmdFile"
+            }
+
+            # 读取内容，移除 BOM，处理编码问题
+            $content = Get-Content $cmdFile -Raw -Encoding UTF8
+            # 正则解释：
+            # ^title\s+ -> 行首匹配 title 和空格
+            # ([^_\s\r\n]+) -> 捕获组：匹配非下划线、非空白字符的内容（即版本号）
+            # _ -> 结束符
+            if ($content -match "(?m)^title\s+([^_\s\r\n]+)_") {
+              $version = $matches[1]
+              # 打印原始匹配字符串
+              Write-Host "🔍 正则匹配原始内容: $($matches[0])" 
+              Write-Host "✅ 自动提取版本号: $version"
+            }
+            else {
+              # 失败时的降级处理：从第二行提取 "Generated on" 时间
+              Write-Warning "⚠️ 无法通过正则提取版本号，尝试从文件头提取时间..."
+              # 获取文件所有行
+              $lines = Get-Content $cmdFile -Encoding UTF8
+              # 检查行数是否足够 (至少需要2行)
+              if ($lines.Count -ge 2) {
+                $secondLine = $lines[1] # 数组索引从0开始，所以是1
+                # 提取时间并格式化
+                # 格式示例: ":: Generated on 2026-08-14 11:09:24 GMT"
+                if ($secondLine -match ":: Generated on (.+) GMT") {
+                  $version = $matches[1].Replace(" ", "-").Replace(":", ".")
+                  Write-Host "⚠️ 使用生成时间作为版本号: $version"
+                }
+                else {
+                  # 如果第二行格式也不对，最后的兜底方案
+                  Write-Warning "⚠️ 第二行时间格式无法识别，使用当前日期。"
+                  $version = (Get-Date).ToString("yyyy.MM.dd")
+                }
+              }
+              else {
+                Write-Warning "⚠️ 文件行数不足，使用当前日期。"
+                $version = (Get-Date).ToString("yyyy.MM.dd")
+              }
+            }
+          }
+
+          # 4. 规范化版本号 (移除可能的前缀 'v')
+          $version = $version -replace '^v', ''
+
+          # 5. 构造标准化的 Tag 和文件名前缀
+          # Tag: v19045.7663
+          # File Prefix: zh-cn_Windows10...-19045.7663
+          #$tagName = "v${version}"
+          $tagName = "${{ env.FILE_NAME }}-v${version}"
+          
+          $assetPrefix = "zh-cn_${{ env.FILE_NAME }}-${version}"
+          
+          Write-Host "--------------------------------------------"
+          Write-Host "Version: $version"
+          Write-Host "TagName: $tagName"
+          Write-Host "AssetPrefix: $assetPrefix"
+          Write-Host "--------------------------------------------"
+
+          # 6. 输出环境变量
+          echo "version=$version" >> $env:GITHUB_ENV
+          echo "tag_name=$tagName" >> $env:GITHUB_ENV
+          echo "asset_prefix=$assetPrefix" >> $env:GITHUB_ENV
+
+          # 7. 设置 Step Outputs (供后续步骤引用)
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "tag_name=$tagName" >> $env:GITHUB_OUTPUT
+          echo "asset_name=$assetPrefix" >> $env:GITHUB_OUTPUT
+
+      # ==========================================
+      # Phase 3: 构建
+      # ==========================================
+      - name: 🏗️ Run UUP Download Script
+        shell: cmd
+        working-directory: ./${{ env.FILE_NAME }}
+        run: |
+          echo "开始执行 UUP 下载脚本..."
+          call uup_download_windows.cmd
+        timeout-minutes: ${{ env.BUILD_TIMEOUT }}
+
+      - name: 🕵️ Verify Build Artifacts
+        id: verify
+        shell: pwsh
+        run: |
+          # 查找生成的 ISO 文件
+          $isoFiles = Get-ChildItem -Path "${{ env.FILE_NAME }}" -Filter "*.iso"
+          if ($isoFiles.Count -eq 0) {
+            Write-Error "❌ 构建失败：未找到任何 ISO 文件。"
+            # 列出目录内容供调试
+            Get-ChildItem -Path "${{ env.FILE_NAME }}" -Recurse | Select-Object FullName, Length
+            exit 1
+          }
+          if ($isoFiles.Count -gt 1) {
+            Write-Warning "⚠️ 发现多个 ISO 文件，将自动选择最大的一个。"
+            $isoFile = $isoFiles | Sort-Object Length -Descending | Select-Object -First 1
+          }
+          else {
+            $isoFile = $isoFiles[0]
+          }
+          Write-Host "✅ 锁定目标 ISO: $($isoFile.FullName) ($([math]::Round($isoFile.Length / 1GB, 2)) GB)"
+          # 将绝对路径传递给下一步
+          echo "ISO_PATH=$($isoFile.FullName)" >> $env:GITHUB_ENV
+
+      # ==========================================
+      # Phase 4: 打包
+      # ==========================================
+      - name: 📦 Compress to 7z
+        shell: pwsh
+        run: |
+          $isoPath = "${{ env.ISO_PATH }}"
+          $outputName = "${{ env.asset_prefix }}.7z"
+          Write-Host "正在压缩: $isoPath -> $outputName"
+          Write-Host "分卷大小: ${{ env.VOLUME_SIZE }}"
+          # 使用 7z 命令
+          # -t7z: 7z格式
+          # -mx=9: 极限压缩
+          # -mmt=${{ env.COMPRESS_THREADS }}: 多线程
+          # -p: 无密码 (默认)
+          7z a -t7z -v${{ env.VOLUME_SIZE }} -mx=9 -mmt=${{ env.COMPRESS_THREADS }} "$outputName" "$isoPath"
+          if ($LASTEXITCODE -ne 0) {
+            throw "❌ 压缩失败，错误码: $LASTEXITCODE"
+          }
+
+      # ==========================================
+      # Phase 5: 发布与通知
+      # ==========================================
+      - name: 🚀 Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.setup.outputs.asset_name }}
+          path: ${{ steps.setup.outputs.asset_name }}.7z*
+          retention-days: 2
+          if-no-files-found: error
+
+      - name: 🎉 Create GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.setup.outputs.tag_name }}
+          name: ${{ steps.setup.outputs.asset_name }}
+          #update_existing_tags: true # 允许更新已存在的 Tag
+          body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.FILE_NAME }}
+            - **Version**: ${{ steps.setup.outputs.version }}
+            - **Build Date**: ${{ github.event.head_commit.timestamp }}
+            - **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+          files: ${{ steps.setup.outputs.asset_name }}.7z*
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ inputs.gh_token || secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Update CHANGELOG
+        if: success()
+        shell: pwsh
+        run: |
+          # 调用外部脚本，传入版本号和文件名
+          .github/scripts/Update-CHANGELOG.ps1 -Version "${{ steps.setup.outputs.version }}" -FileName "${{ env.FILE_NAME }}"
+
+      - name: 🔙 Commit Changes
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          # 只有当有 staged 变更时才提交
+          git diff --staged --quiet || git commit -m "chore(release): update changelog for ${{ steps.setup.outputs.tag_name }}"
+          
+          # 优化：使用 github.ref_name 获取默认分支名，兼容 main/master
+          # 拉取并变基，使用 -Xtheirs 策略（如果发生冲突，优先保留当前工作区的更改，即刚写的新日志）
+
+          #git pull --rebase -Xtheirs origin ${{ github.ref_name }} || git pull --rebase origin ${{ github.ref_name }}
+          
+          git pull --rebase -Xtheirs origin ${{ github.ref_name }}
+
+          
+          git push

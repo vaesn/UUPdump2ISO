@@ -1,0 +1,55 @@
+name: Windows10_22H2_amd64_Cumulative_Update
+
+on:
+  # 1. 定时任务 (每季度末月 25 号 凌晨 1:00 北京时间)
+  schedule:
+    - cron: '0 17 25 3,6,9,12 *' # UTC 时间对应北京时间 01:00
+
+  # 2. 允许手动触发，并可输入参数
+  workflow_dispatch:
+    inputs:
+      force_version:
+        description: '⚠️ 强制指定版本号 (覆盖自动提取)'
+        required: false
+        default: ''
+      # 其他参数通常保持默认，但也可以在此开放给用户修改
+      volume_size:
+        description: '分卷大小 (例如: 1024M)'
+        required: false
+        default: '1536M'
+
+jobs:
+  call-build:
+    name: 🚀 Windows10_22H2_amd64_Cumulative_Update
+    runs-on: ubuntu-latest # 调用者的系统随意，通常选最轻量的 linux，不消耗 Windows 配额
+    concurrency:
+      group: ${{ github.workflow }} # 独立的并发队列，互不干扰
+      cancel-in-progress: true
+    steps:
+      - name: 🔄 Windows10_22H2_amd64_Cumulative_Update
+        uses: ./.github/workflows/reusable-windows-build.yml # 指向原文件路径
+        with:
+          # -----------------------------------------
+          # 必填参数 (对应原 FILE_NAME)
+          # -----------------------------------------
+          file_name: 'Windows10_22H2_amd64_Cumulative_Update'
+          
+          # -----------------------------------------
+          # 可选参数 (留空则使用 Reusable Workflow 中的默认值)
+          # -----------------------------------------
+          
+          # 如果在手动触发时输入了版本号，则传递进去；否则传空字符串
+          force_version: ${{ inputs.force_version }}
+          
+          # 如果你想自定义分卷大小，取消下面注释
+          volume_size: ${{ inputs.volume_size }} 
+          
+          # 构建超时时间 (默认 180 分钟)
+          build_timeout: 300
+          
+          # 压缩线程数 (默认 2)
+          compress_threads: 2
+        
+        # 传递权限 (允许可重用工作流创建 Release 和提交代码)
+        permissions:
+          contents: write

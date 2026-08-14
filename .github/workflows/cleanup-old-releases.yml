@@ -1,0 +1,136 @@
+name: 🧹 Auto Cleanup Old Releases
+
+on:
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+    status: success
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    name: 🧹 Auto Cleanup Old Releases
+    runs-on: ubuntu-latest
+    
+    # 过滤条件：
+    # 1. 必须成功
+    # 2. 排除自己
+    # 3. 仅处理包含 "Windows" 的工作流
+    if: |
+      github.event.workflow_run.conclusion == 'success' && 
+      github.event.workflow_run.name != '🧹 Auto Cleanup Old Releases' &&
+      contains(github.event.workflow_run.name, 'Windows')
+
+    steps:
+      - name: 🟢 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🗑️ Delete Old Release (Keep Last N)
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 配置：每个项目保留多少个版本？
+          KEEP_COUNT: "2"
+          # 配置：模拟运行？
+          WHAT_IF: "false"
+        run: |
+          # ==========================================
+          # 1. 获取触发源信息 (确定前缀)
+          # ==========================================
+          $runId = ${{ github.event.workflow_run.id }}
+          
+          try {
+              # 调用 GitHub API 获取运行详情
+              $apiUrl = "repos/${{ github.repository }}/actions/runs/$runId"
+              $runInfo = gh api $apiUrl
+              $triggerWorkflow = ($runInfo | ConvertFrom-Json).name
+          }
+          catch {
+              Write-Error "❌ 无法通过 API 获取触发源名称。"
+              exit 1
+          }
+
+          # 二次校验：如果没拿到名字，或者名字不包含 Windows，直接退出
+          if ([string]::IsNullOrWhiteSpace($triggerWorkflow) -or -not ($triggerWorkflow -like "*Windows*")) {
+              Write-Host "⏭️ 无效的触发源 ($triggerWorkflow)，跳过清理。"
+              exit 0
+          }
+
+          Write-Host "🚀 当前清理任务服务于: $triggerWorkflow"
+
+          # ==========================================
+          # 2. 准备参数
+          # ==========================================
+          # 使用 [int] 强转，确保比较逻辑正确
+          $keepCount = [int]$env:KEEP_COUNT
+          $isDryRun = ($env:WHAT_IF -eq "true")
+          
+          if ($isDryRun) {
+              Write-Host "⚠️ [模拟模式] 不会实际删除数据。" -ForegroundColor Yellow
+          }
+
+          # ==========================================
+          # 3. 获取并处理 Release 数据
+          # ==========================================
+          # 获取最近 300 个 Release 的数据
+          $releasesJson = gh release list --limit 300 --json id,tagName,createdAt,publishedAt --jq '.'
+          
+          if ([string]::IsNullOrWhiteSpace($releasesJson)) {
+              Write-Host "📭 仓库中没有 Release，退出。"
+              exit 0
+          }
+
+          $releases = $releasesJson | ConvertFrom-Json
+
+          # ==========================================
+          # 4. 核心逻辑：筛选、排序、清理
+          # ==========================================
+          
+          # Step A: 筛选。只选出 Tag 名以触发源 Workflow 名开头的 Release
+          # 这样 Win10 的任务永远看不到 Win11 的数据，彻底解决跨项目误删
+          $targetReleases = $releases | Where-Object { $_.tagName -like "$triggerWorkflow*" }
+
+          if ($targetReleases.Count -eq 0) {
+              Write-Host "ℹ️ 未找到匹配前缀 '$triggerWorkflow' 的 Release。"
+              exit 0
+          }
+
+          # Step B: 排序。
+          # 使用 DateTime 类型确保排序绝对准确，防止字符串排序 (如 19045 vs 2024) 的错误
+          $sortedTargets = $targetReleases | Sort-Object -Property {
+              # 优先使用 publishedAt，如果为空则回退到 createdAt
+              $timeStr = if ([string]::IsNullOrWhiteSpace($_.publishedAt)) { $_.createdAt } else { $_.publishedAt }
+              [DateTime]::Parse($timeStr)
+          } -Descending
+
+          Write-Host "------------------------------------------"
+          Write-Host "🔍 找到 $($sortedTargets.Count) 个匹配项，策略: 保留最新 $keepCount 个"
+
+          $deletedCount = 0
+
+          # Step C: 遍历并执行删除
+          for ($i = 0; $i -lt $sortedTargets.Count; $i++) {
+              $rel = $sortedTargets[$i]
+              
+              # 索引从 0 开始。如果 i < keepCount，则属于“保留范围”
+              if ($i -lt $keepCount) {
+                  Write-Host " ✅ [保留] #$($i+1) $($rel.tagName)"
+              }
+              else {
+                  # 超出保留数量的部分，执行删除
+                  Write-Host " 🗑️ [删除] $($rel.tagName)"
+                  
+                  if (-not $isDryRun) {
+                      gh release delete $rel.tagName --yes --cleanup-tag true
+                  }
+                  $deletedCount++
+              }
+          }
+
+          # ==========================================
+          # 5. 汇总
+          # ==========================================
+          Write-Host "------------------------------------------"
+          Write-Host "📊 清理完成: 删除了 $deletedCount 个旧版本"
