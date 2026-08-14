@@ -18,6 +18,10 @@ on:
         required: false
         default: '1536M'
 
+# 传递权限 (允许可重用工作流创建 Release 和提交代码)
+permissions:
+  contents: write
+
 jobs:
   call-build:
     name: 🚀 Windows11_26H1_arm64
@@ -50,6 +54,4 @@ jobs:
           # 压缩线程数 (默认 2)
           compress_threads: 2
         
-        # 传递权限 (允许可重用工作流创建 Release 和提交代码)
-        permissions:
-          contents: write
+

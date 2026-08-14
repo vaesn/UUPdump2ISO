@@ -17,7 +17,10 @@ on:
         description: '分卷大小 (例如: 1024M)'
         required: false
         default: '1536M'
-
+# 传递权限 (允许可重用工作流创建 Release 和提交代码)
+permissions:
+  contents: write
+  
 jobs:
   call-build:
     name: 🚀 Windows10_22H2_arm64_Cumulative_Update
@@ -50,6 +53,3 @@ jobs:
           # 压缩线程数 (默认 2)
           compress_threads: 2
         
-        # 传递权限 (允许可重用工作流创建 Release 和提交代码)
-        permissions:
-          contents: write
