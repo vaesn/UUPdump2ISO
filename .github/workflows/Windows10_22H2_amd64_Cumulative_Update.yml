@@ -34,9 +34,9 @@ jobs:
     uses: vaesn/UUPdump2ISO/.github/workflows/reusable-windows-build.yml@main
     
     # 并发控制
-    concurrency:
-      group: ${{ github.workflow }} # 独立的并发队列，互不干扰
-      cancel-in-progress: true
+    #concurrency:
+      #group: ${{ github.workflow }} # 独立的并发队列，互不干扰
+      #cancel-in-progress: true
 
     # 传递参数给被调用的 Workflow
     with:
