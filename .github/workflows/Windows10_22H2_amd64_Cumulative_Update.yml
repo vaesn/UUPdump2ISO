@@ -39,19 +39,27 @@ jobs:
 
     - name: Package binaries
       run: |
-        7z a -t7z -v1650M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}.7z ./${{env.FILE_NAME}}/*.iso
+        7z a -t7z -v1780M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
     - uses: actions/upload-artifact@v4
       with:
-        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}
-        path: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}.7z*
+        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        path: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
     - name: Release
       uses: softprops/action-gh-release@v3
       with:
-        tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}
+        tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
         overwrite: true
-        fail_on_unmatched_files: false
-        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}
-        files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}.7z*
+        body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.FILE_NAME }}
+            - **Version**: ${{env.Build_VERSION}}
+            - **Build Date**: ${{ steps.time.outputs.timestamp }}
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+                   
+        fail_on_unmatched_files: true
+        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
 

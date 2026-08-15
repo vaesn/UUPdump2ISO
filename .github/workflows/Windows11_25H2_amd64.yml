@@ -36,8 +36,12 @@ jobs:
       - name: Package binaries
         run: |
           cd ${{env.FILE_NAME}}
-
-          ISO_FILE=$(find . -maxdepth 2 -name "*.iso" | head -n 1)
+          
+          ISO_FILE=$(find . -maxdepth 1 -iname "*.iso" | head -n 1)
+          
+          echo "Listing all files in current dir:"
+          
+          ls -la
           
           if [ -z "$ISO_FILE" ]; then
             echo "Error: No ISO file found!"
@@ -47,7 +51,7 @@ jobs:
           echo "Found ISO: $ISO_FILE"
           
           7z a -t7z -v1680M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z "$ISO_FILE"
-
+  
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -76,6 +80,14 @@ jobs:
         with:
           tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
           release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
-          body: "Auto generated release for zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}"
+          overwrite: true
+          body: |
+              ## 🚀 Automated Release
+              - **Product**: ${{ env.FILE_NAME }}
+              - **Version**: ${{env.Build_VERSION}}
+              ---
+              > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+                    
+          fail_on_unmatched_files: true
           files: ${{env.FILE_NAME}}/zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
