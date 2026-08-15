@@ -1,17 +1,26 @@
-name: Windows11_25H2_amd64
+name: Windows11_26H1_amd64
 
 on: workflow_dispatch
-#on: [push, pull_request]
+
+permissions:
+  contents: write
 
 env:
   Build_VERSION: '28000.2704'
-  FILE_NAME: Windows11_25H2_amd64
-
+  FILE_NAME: Windows11_26H1_amd64
+  
 jobs:
-  Windows11_25H2_amd64:
+  Windows11_26H1_amd64:
     runs-on: windows-latest
 
     steps:
+    - name: Generate Timestamp
+      id: time
+      shell: pwsh
+      run: |
+        $timestamp = Get-Date -Format "yyyyMMddHHmm"
+        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
+        
     - name: Checkout repository
       uses: actions/checkout@v5
 
@@ -30,18 +39,27 @@ jobs:
 
     - name: Package binaries
       run: |
-        7z a -t7z -v1536M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
-
+        7z a -t7z -v1780M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
     - uses: actions/upload-artifact@v4
       with:
-        name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        path: ${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
+        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        path: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        release_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        files: ${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
-        
+        overwrite: true
+        body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.FILE_NAME }}
+            - **Version**: ${{env.Build_VERSION}}
+            - **Build Date**: ${{ steps.time.outputs.timestamp }}
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+                   
+        fail_on_unmatched_files: true
+        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
+
 

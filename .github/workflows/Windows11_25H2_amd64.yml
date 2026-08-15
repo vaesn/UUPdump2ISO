@@ -8,86 +8,58 @@ permissions:
 env:
   Build_VERSION: '26200.9168'
   FILE_NAME: Windows11_25H2_amd64
-
+  
 jobs:
   Windows11_25H2_amd64:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+    - name: Generate Timestamp
+      id: time
+      shell: pwsh
+      run: |
+        $timestamp = Get-Date -Format "yyyyMMddHHmm"
+        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
+        
+    - name: Checkout repository
+      uses: actions/checkout@v5
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y aria2 cabextract wimtools chntpw genisoimage p7zip-full
+    - name: UUP dump WinISO
+      shell: cmd
+      run: |
+        cd ${{env.FILE_NAME}}
+        dir
+        uup_download_windows.cmd
 
-      - name: UUP dump Linux Script
-        run: |
-          echo "Entering directory ${{env.FILE_NAME}}"
-          cd ${{env.FILE_NAME}}
-          chmod +x uup_download_linux.sh
-          ./uup_download_linux.sh
+    - name: dir dir
+      shell: cmd
+      run: |
+        cd ${{env.FILE_NAME}}
+        dir
 
-      - name: List files structure for debugging
-        run: |
-          echo "Current directory contents:"
-          ls -R ${{env.FILE_NAME}}
+    - name: Package binaries
+      run: |
+        7z a -t7z -v1780M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
+    - uses: actions/upload-artifact@v4
+      with:
+        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        path: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
-      - name: Package binaries
-        run: |
-          cd ${{env.FILE_NAME}}
-          
-          ISO_FILE=$(find . -maxdepth 1 -iname "*.iso" | head -n 1)
-          
-          echo "Listing all files in current dir:"
-          
-          ls -la
-          
-          if [ -z "$ISO_FILE" ]; then
-            echo "Error: No ISO file found!"
-            exit 1
-          fi
-          
-          echo "Found ISO: $ISO_FILE"
-          
-          7z a -t7z -v1680M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z "$ISO_FILE"
-  
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
-          path: ${{env.FILE_NAME}}/zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      with:
+        tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        overwrite: true
+        body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.FILE_NAME }}
+            - **Version**: ${{env.Build_VERSION}}
+            - **Build Date**: ${{ steps.time.outputs.timestamp }}
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+                   
+        fail_on_unmatched_files: true
+        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
-
-      - name: Delete existing tag to allow overwrite
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const tag = '${{env.FILE_NAME}}-${{env.Build_VERSION}}';
-            try {
-              await git.deleteRef('tags/' + tag);
-              console.log(`Deleted existing tag: ${tag}`);
-            } catch (error) {
-              if (error.status === 404) {
-                console.log(`Tag ${tag} does not exist, continuing...`);
-              } else {
-                throw error;
-              }
-            }
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
-          release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
-          overwrite: true
-          body: |
-              ## 🚀 Automated Release
-              - **Product**: ${{ env.FILE_NAME }}
-              - **Version**: ${{env.Build_VERSION}}
-              ---
-              > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
-                    
-          fail_on_unmatched_files: true
-          files: ${{env.FILE_NAME}}/zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 

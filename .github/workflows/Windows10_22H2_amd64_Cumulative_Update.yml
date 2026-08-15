@@ -18,7 +18,7 @@ jobs:
       id: time
       shell: pwsh
       run: |
-        $timestamp = Get-Date -Format "yyyyMMdd"
+        $timestamp = Get-Date -Format "yyyyMMddHHmm"
         echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
         
     - name: Checkout repository
