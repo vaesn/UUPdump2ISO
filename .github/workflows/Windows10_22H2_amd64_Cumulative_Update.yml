@@ -2,15 +2,25 @@ name: Windows10_22H2_amd64_Cumulative_Update
 
 on: workflow_dispatch
 
+permissions:
+  contents: write
+
 env:
   Build_VERSION: '19045.7663'
   FILE_NAME: Windows10_22H2_amd64_Cumulative_Update
-
+  
 jobs:
   Windows10_22H2_amd64_Cumulative_Update:
     runs-on: windows-latest
 
     steps:
+    - name: Generate Timestamp
+      id: time
+      shell: pwsh
+      run: |
+        $timestamp = Get-Date -Format "yyyyMMdd"
+        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
+        
     - name: Checkout repository
       uses: actions/checkout@v5
 
@@ -29,18 +39,19 @@ jobs:
 
     - name: Package binaries
       run: |
-        7z a -t7z -v1680M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
-
+        7z a -t7z -v1650M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}.7z ./${{env.FILE_NAME}}/*.iso
     - uses: actions/upload-artifact@v4
       with:
-        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        path: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
+        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}
+        path: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}.7z*
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
-        tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
+        tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}
+        overwrite: true
+        fail_on_unmatched_files: false
+        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}
+        files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}-${{ steps.time.outputs.timestamp }}.7z*
 
 
