@@ -80,27 +80,7 @@ jobs:
         cd
         cd ${{env.FILE_PATH}}
         
-        $basePath =$env:GITHUB_WORKSPACE
-        $wimAbsPath = Join-Path -Path$basePath -ChildPath $env:FILE_PATH | Join-Path -ChildPath "$($env:FILE_NAME).wim"
-        
-        $exePath = "${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\UpdatePack7R2.exe"
-        Write-Host "------------------------------------------------"
-        # 打印根目录
-        Write-Host "1. 当前工作区根目录 (GITHUB_WORKSPACE):"
-        Write-Host $basePath
-        Write-Host "------------------------------------------------"
-        # 打印中间拼接路径
-        Write-Host "2. 文件夹路径 (FILE_PATH):"
-        Write-Host "$basePath\$env:FILE_PATH"
-        Write-Host "------------------------------------------------"
-        # 打印最终生成的绝对路径
-        Write-Host "3. 最终生成的绝对路径:"
-        Write-Host $wimAbsPath
-        Write-Host "------------------------------------------------"
-        Write-Host $exePath
-        Write-Host "------------------------------------------------"         
-        
-        & $exePath /ie11 /WimFile="$wimAbsPath" /Index=* /NoUSB /Optimize
+        ./UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\"$($env:FILE_NAME).wim" /Index=* /NoUSB /Optimize
         
         dir
         cd
