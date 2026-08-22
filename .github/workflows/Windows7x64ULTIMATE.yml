@@ -78,9 +78,9 @@ jobs:
       run: |
         dir
         cd
-        cd ${{env.FILE_PATH}}
+        cd ${{ env.FILE_PATH }}
         
-        ./UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\"$($env:FILE_NAME).wim" /Index=* /NoUSB /Optimize
+        ./UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\${{ env.FILE_NAME }}.wim" /Index=* /NoUSB /Optimize
         
         dir
         cd
