@@ -29,12 +29,10 @@ jobs:
       shell: pwsh
       run: |
         cd ${{ env.FILE_PATH }}
-        
         Write-Host "---当前目录---"
         pwd
         Write-Host "---当前目录下的文件---"
         ls
-
         # dotNetFx48
         curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
         curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
@@ -62,28 +60,27 @@ jobs:
         
         7z x ${{ env.FILE_NAME }}.7z.001
         
-        Write-Host "===当前目录==="
+        Write-Host "=====当前目录====="
         pwd
-        Write-Host "===当前目录下的文件==="
+        Write-Host "=====当前目录下的文件====="
         ls
         
     - name: Ready to begin
       shell: cmd
       run: |
         cd ${{env.FILE_PATH}}
-        echo ===当前目录===
+        echo =====当前目录=====
         cd
-        echo ===当前目录下所有文件===
+        echo =====当前目录下所有文件=====
         dir
         
     - name: UpdatePack7R2 Running
       shell: cmd
       run: |
         cd ${{ env.FILE_PATH }}
-        cd ${{env.FILE_PATH}}
-        echo ===当前目录===
+        echo =====当前目录=====
         cd
-        echo ===当前目录下所有文件===
+        echo =====当前目录下所有文件=====
         dir
         
         echo ============== UpdatePack7R2 Running ==============
@@ -92,18 +89,18 @@ jobs:
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
-        echo ===After 当前目录===
+        echo =====After 当前目录=====
         cd
-        echo ===After 当前目录下所有文件===
+        echo =====After 当前目录下所有文件=====
         dir
 
     - name: Execution completed
       shell: pwsh
       run: |
         cd ${{env.FILE_PATH}}
-        Write-Host "---当前目录---"
+        Write-Host "-----当前目录-----"
         pwd
-        Write-Host "---当前目录下的文件---"
+        Write-Host "-----当前目录下的文件-----"
         ls
         
     - name: Mirrored product compression and splitting
@@ -116,9 +113,9 @@ jobs:
       shell: cmd
       run: |
         cd ${{env.FILE_PATH}}
-        echo ===当前目录===
+        echo =====当前目录=====
         cd
-        echo ===当前目录下所有文件===
+        echo =====当前目录下所有文件=====
         dir
       
     - uses: actions/upload-artifact@v4
