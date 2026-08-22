@@ -8,7 +8,7 @@ permissions:
 env:
   UpdatePack7R2_VERSION: '26.1.15'
   FILE_NAME: install_Windows7x64ULTIMATE
-
+  FILE_PATH: Windows7x64ULTIMATE
 jobs:
   Windows7x64ULTIMATE_UpdatePack7R2:
     runs-on: windows-latest
@@ -28,9 +28,13 @@ jobs:
     - name: Get Tools and Wim
       shell: pwsh
       run: |
-        pwd
-        ls          # $env.GITHUB_WORKSPACE=D:\a\REPO\REPO
-        cd ${{ env.FILE_NAME }}
+        Write-Host "当前目录:"
+        Get-Location
+        Write-Host "目录下的文件:"
+        Get-ChildItem -Recurse
+        
+        # $env.GITHUB_WORKSPACE=D:\a\REPO\REPO\
+        cd ${{ env.FILE_PATH }}
         # ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}
         
         # dotNetFx48
@@ -49,7 +53,7 @@ jobs:
         # SmartFix
         # curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
         # DirectX_June2010
-        # ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}
+        # ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}
         
         # UpdatePack7R2
         curl -L -o UpdatePack7R2.exe https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
@@ -66,7 +70,7 @@ jobs:
     - name: dir
       shell: cmd
       run: |
-        cd ${{env.FILE_NAME}}
+        cd ${{env.FILE_PATH}}
         dir
         
     - name: UpdatePack7R2 Wim
@@ -74,9 +78,29 @@ jobs:
       run: |
         dir
         cd
-        cd ${{env.FILE_NAME}}
+        cd ${{env.FILE_PATH}}
         
-        UpdatePack7R2.exe /ie11 /WimFile=${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}.wim /Index=* /NoUSB /Optimize
+        $basePath =$env:GITHUB_WORKSPACE
+        $wimAbsPath = Join-Path -Path$basePath -ChildPath $env:FILE_PATH | Join-Path -ChildPath "$($env:FILE_NAME).wim"
+        
+        $exePath = "${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\UpdatePack7R2.exe"
+        Write-Host "------------------------------------------------"
+        # 打印根目录
+        Write-Host "1. 当前工作区根目录 (GITHUB_WORKSPACE):"
+        Write-Host $basePath
+        Write-Host "------------------------------------------------"
+        # 打印中间拼接路径
+        Write-Host "2. 文件夹路径 (FILE_PATH):"
+        Write-Host "$basePath\$env:FILE_PATH"
+        Write-Host "------------------------------------------------"
+        # 打印最终生成的绝对路径
+        Write-Host "3. 最终生成的绝对路径:"
+        Write-Host $wimAbsPath
+        Write-Host "------------------------------------------------"
+        Write-Host $exePath
+        Write-Host "------------------------------------------------"         
+        
+        & $exePath /ie11 /WimFile="$wimAbsPath" /Index=* /NoUSB /Optimize
         
         dir
         cd
@@ -84,7 +108,7 @@ jobs:
     - name: dir
       shell: cmd
       run: |
-        cd ${{env.FILE_NAME}}
+        cd ${{env.FILE_PATH}}
         dir
         cd
         
@@ -97,7 +121,7 @@ jobs:
     - name: dir
       shell: cmd
       run: |
-        cd ${{env.FILE_NAME}}
+        cd ${{env.FILE_PATH}}
         dir
         cd
       
