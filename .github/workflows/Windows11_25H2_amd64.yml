@@ -39,7 +39,8 @@ jobs:
 
     - name: Package binaries
       run: |
-        7z a -t7z -v1780M -mx=9 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
+        7z a -t7z -v1780M -mx=0 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
+        
     - uses: actions/upload-artifact@v4
       with:
         name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
@@ -48,8 +49,8 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v3
       with:
-        tag_name: ${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        overwrite: true
+        tag_name: ${{env.FILE_NAME}}
+        overwrite_files: true
         body: |
             ## 🚀 Automated Release
             - **Product**: ${{ env.FILE_NAME }}
@@ -59,7 +60,8 @@ jobs:
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
                    
         fail_on_unmatched_files: true
-        release_name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
+        
         files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
 

@@ -1,0 +1,128 @@
+name: Windows7x64ULTIMATE
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+env:
+  UpdatePack7R2_VERSION: '26.1.15'
+  FILE_NAME: install_Windows7x64ULTIMATE
+
+jobs:
+  Windows7x64ULTIMATE_UpdatePack7R2:
+    runs-on: windows-latest
+
+    steps:
+    - name: Generate Timestamp
+      id: time
+      shell: pwsh
+      run: |
+        $timestamp = Get-Date -Format "yyyyMMddHHmm"
+        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
+        
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    # init
+    - name: Get Tools and Wim
+      shell: pwsh
+      run: |
+        pwd
+        ls          # $env.GITHUB_WORKSPACE=D:\a\REPO\REPO
+        cd ${{ env.FILE_NAME }}
+        # ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}
+        
+        # dotNetFx48
+        curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
+        curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
+        # dotNetFx48LP
+        curl -L -o dotNetFx48LP_x64_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x64_CHS.WA
+        curl -L -o dotNetFx48LP_x86_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x86_CHS.WA
+        # vcredist
+        curl -L -o vcredist_x64_Win7_20250708.WA https://gitlab.com/-/project/11037551/uploads/8899c68cf5b5bfc7da7f04b73afa9f58/vcredist_x64_Win7_20250708.WA
+        curl -L -o vcredist_x86_Win7_20250708_r.WA https://gitlab.com/-/project/11037551/uploads/49d56348397669befad302f58070ab2f/vcredist_x86_Win7_20250708_r.WA
+        # vcredist
+        curl -L -o vcredist_x64_2022_WinAll_14.44.35211.WA https://gitlab.com/-/project/11037551/uploads/ce26d073600eb68db902bc12946d42e7/vcredist_x64_2022_WinAll_14.44.35211.WA
+        curl -L -o vcredist_x86_2022_WinAll_14.44.35211_r.WA https://gitlab.com/-/project/11037551/uploads/16a7925f42634ef7232d7d9cc122034a/vcredist_x86_2022_WinAll_14.44.35211_r.WA
+        
+        # SmartFix
+        # curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
+        # DirectX_June2010
+        # ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}
+        
+        # UpdatePack7R2
+        curl -L -o UpdatePack7R2.exe https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
+        
+        # install_Windows7x64ULTIMATE.wim
+        curl -L -o ${{ env.FILE_NAME }}.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
+        curl -L -o ${{ env.FILE_NAME }}.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
+        
+        7z x ${{ env.FILE_NAME }}.7z.001
+        
+        ls
+        pwd
+        
+    - name: dir
+      shell: cmd
+      run: |
+        cd ${{env.FILE_NAME}}
+        dir
+        
+    - name: UpdatePack7R2 Wim
+      shell: cmd
+      run: |
+        dir
+        cd
+        cd ${{env.FILE_NAME}}
+        
+        UpdatePack7R2.exe /ie11 /WimFile=${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}.wim /Index=* /NoUSB /Optimize
+        
+        dir
+        cd
+
+    - name: dir
+      shell: cmd
+      run: |
+        cd ${{env.FILE_NAME}}
+        dir
+        cd
+        
+    - name: Package binaries  
+      run: |
+        7z a -t7z -v1950M -bsp2 -mx=0 ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z ./${{ env.FILE_NAME }}.wim
+        
+        7z a -t7z -bsp2 -mx=0 UpdatePack7R2-log.7z C:\WINDOWS\UpdatePack7.log
+        
+    - name: dir
+      shell: cmd
+      run: |
+        cd ${{env.FILE_NAME}}
+        dir
+        cd
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: UpdatePack7R2-log
+        path: UpdatePack7R2-log.7z
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}
+        path: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z.*
+
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      with:
+        tag_name: ${{ env.FILE_NAME }}
+        body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.FILE_NAME }}
+            - **Version**: ${{ env.UpdatePack7R2_VERSION }}
+            - **Build Date**: ${{ steps.time.outputs.timestamp }}
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+                           
+        name: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}
+        
+        files: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z.*
