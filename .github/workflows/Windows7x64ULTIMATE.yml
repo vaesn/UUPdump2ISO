@@ -33,10 +33,8 @@ jobs:
         Write-Host "目录下的文件:"
         Get-ChildItem -Recurse
         
-        # $env.GITHUB_WORKSPACE=D:\a\REPO\REPO\
         cd ${{ env.FILE_PATH }}
-        # ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}
-        
+
         # dotNetFx48
         curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
         curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
@@ -68,20 +66,25 @@ jobs:
         pwd
         
     - name: dir
-      shell: cmd
+      shell: pwsh
       run: |
         cd ${{env.FILE_PATH}}
-        dir
+        echo 当前目录是:
+        dir   
         
     - name: UpdatePack7R2 Wim
       shell: cmd
       run: |
-        dir
+       echo 当前目录是:
         cd
+        echo 当前目录下所有文件:
+        dir
+        
         cd ${{ env.FILE_PATH }}
         
-        ./UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\${{ env.FILE_NAME }}.wim" /Index=* /NoUSB /Optimize
+        UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\${{ env.FILE_NAME }}.wim" /Index=* /NoUSB /Optimize
         
+        echo 当前目录下所有文件:
         dir
         cd
 
@@ -89,7 +92,9 @@ jobs:
       shell: cmd
       run: |
         cd ${{env.FILE_PATH}}
+        echo 当前目录下所有文件:
         dir
+        echo 当前目录是:
         cd
         
     - name: Package binaries  
