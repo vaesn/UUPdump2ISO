@@ -68,33 +68,34 @@ jobs:
         ls
         
     - name: Ready to begin
-      shell: pwsh
+      shell: cmd
       run: |
-        cd ${{ env.FILE_PATH }}
-        Write-Host "---当前目录---"
-        pwd
-        Write-Host "---当前目录下的文件---"
-        ls
+        cd ${{env.FILE_PATH}}
+        echo ===当前目录===
+        cd
+        echo ===当前目录下所有文件===
+        dir
         
     - name: UpdatePack7R2 Running
-      shell: pwsh
+      shell: cmd
       run: |
         cd ${{ env.FILE_PATH }}
-        Write-Host "---当前目录---"
-        pwd
-        Write-Host "---当前目录下的文件---"
-        ls
+        cd ${{env.FILE_PATH}}
+        echo ===当前目录===
+        cd
+        echo ===当前目录下所有文件===
+        dir
         
-        Write-Host " ============== UpdatePack7R2 Running =============="
+        echo ============== UpdatePack7R2 Running ==============
         
         UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\${{ env.FILE_NAME }}.wim" /Index=* /NoUSB /Optimize
         
-        Write-Host " ============== UpdatePack7R2 Execution completed =============="
+        echo ============== UpdatePack7R2 Execution completed ==============
         
-        Write-Host "===After 当前目录==="
-        pwd
-        Write-Host "===After 当前目录下所有文件==="
-        ls
+        echo ===After 当前目录===
+        cd
+        echo ===After 当前目录下所有文件===
+        dir
 
     - name: Execution completed
       shell: pwsh
