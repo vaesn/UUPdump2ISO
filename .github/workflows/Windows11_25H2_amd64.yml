@@ -6,7 +6,7 @@ permissions:
   contents: write
 
 env:
-  Build_VERSION: '26200.9168'
+  Build_VERSION: '26200.9267'
   FILE_NAME: Windows11_25H2_amd64
   
 jobs:
@@ -28,19 +28,31 @@ jobs:
       shell: cmd
       run: |
         cd ${{env.FILE_NAME}}
+        echo =====Before 当前目录=====
+        cd
+        echo =====Before 当前目录下所有文件=====
         dir
+        echo ============== Running ==============
         uup_download_windows.cmd
-
-    - name: dir dir
-      shell: cmd
-      run: |
-        cd ${{env.FILE_NAME}}
+        echo ============== Execution completed ==============
+        echo =====After 当前目录 =====
+        cd
+        echo =====After 当前目录下所有文件 =====
         dir
 
-    - name: Package binaries
+    - name: Multi-volume Compression
       run: |
         7z a -t7z -v1780M -mx=0 zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z ./${{env.FILE_NAME}}/*.iso
         
+    - name: Execution completed
+      shell: cmd
+      run: |
+        cd ${{env.FILE_NAME}}
+        echo =====当前目录=====
+        cd
+        echo =====当前目录下所有文件=====
+        dir
+          
     - uses: actions/upload-artifact@v4
       with:
         name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
@@ -61,7 +73,6 @@ jobs:
                    
         fail_on_unmatched_files: true
         name: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}
-        
         files: zh-cn_${{env.FILE_NAME}}-${{env.Build_VERSION}}.7z*
 
 
