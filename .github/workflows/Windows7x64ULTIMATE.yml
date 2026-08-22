@@ -28,12 +28,11 @@ jobs:
     - name: Get Tools and Wim
       shell: pwsh
       run: |
-        Write-Host "当前目录:"
-        Get-Location
-        Write-Host "目录下的文件:"
-        Get-ChildItem -Recurse
-        
         cd ${{ env.FILE_PATH }}
+        Write-Host "---当前目录---"
+        Get-Location
+        Write-Host "---目录下的文件---"
+        Get-ChildItem -Recurse        
 
         # dotNetFx48
         curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
@@ -65,37 +64,39 @@ jobs:
         ls
         pwd
         
-    - name: dir
+    - name: dir-01
       shell: pwsh
       run: |
-        cd ${{env.FILE_PATH}}
-        echo 当前目录是:
-        dir   
+        cd ${{ env.FILE_PATH }}
+        echo ===当前目录是===
+        cd
+        echo ===当前目录下所有文件===
+        dir
         
     - name: UpdatePack7R2 Wim
       shell: cmd
       run: |
-       echo 当前目录是:
-        cd
-        echo 当前目录下所有文件:
-        dir
-        
         cd ${{ env.FILE_PATH }}
+        echo ===Before 当前目录是===
+        cd
+        echo ===Before 当前目录下所有文件===
+        dir
         
         UpdatePack7R2.exe /ie11 /WimFile="${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_PATH }}\${{ env.FILE_NAME }}.wim" /Index=* /NoUSB /Optimize
         
-        echo 当前目录下所有文件:
-        dir
+        echo ===After 当前目录===
         cd
+        echo ===After 当前目录下所有文件===
+        dir
 
-    - name: dir
+    - name: dir-02
       shell: cmd
       run: |
         cd ${{env.FILE_PATH}}
-        echo 当前目录下所有文件:
-        dir
-        echo 当前目录是:
+        echo ===当前目录===
         cd
+        echo ===当前目录下所有文件===
+        dir
         
     - name: Package binaries  
       run: |
@@ -103,12 +104,15 @@ jobs:
         
         7z a -t7z -bsp2 -mx=0 UpdatePack7R2-log.7z C:\WINDOWS\UpdatePack7.log
         
-    - name: dir
+    - name: upload-artifact
       shell: cmd
       run: |
         cd ${{env.FILE_PATH}}
-        dir
+        cd ${{env.FILE_PATH}}
+        echo ===当前目录===
         cd
+        echo ===当前目录下所有文件===
+        dir
       
     - uses: actions/upload-artifact@v4
       with:
@@ -120,7 +124,7 @@ jobs:
         name: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}
         path: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z.*
 
-    - name: Release
+    - name: Automated Release
       uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ env.FILE_NAME }}
