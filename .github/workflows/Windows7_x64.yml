@@ -40,15 +40,13 @@ jobs:
         # SmartFix
         curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
         # DirectX_June2010
-        
         # UpdatePack7R2
         curl -L -o UpdatePack7R2.exe https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
         # install_Windows7x64ULTIMATE.wim
         curl -L -o ${{ env.FILE_NAME }}.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
         curl -L -o ${{ env.FILE_NAME }}.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
-        
         7z x ${{ env.FILE_NAME }}.7z.001
-        
+        Rename-Item -Path "*.wim" -NewName "${{ env.FILE_NAME }}.wim"
         Write-Host "=====当前目录====="
         pwd
         Write-Host "=====当前目录下的文件====="
@@ -58,6 +56,7 @@ jobs:
       shell: cmd
       run: |
         cd ${{env.FILE_NAME}}
+        ren "*.wim" "${{ env.FILE_NAME }}.wim"
         echo =====当前目录=====
         cd
         echo =====当前目录下所有文件=====
