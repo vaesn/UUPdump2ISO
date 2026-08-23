@@ -8,6 +8,7 @@ permissions:
 env:
   UpdatePack7R2_VERSION: '26.1.15'
   FILE_NAME: Windows7_x64
+  BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
 jobs:
   Windows7_x64_UpdatePack7R2:
     runs-on: windows-latest
@@ -72,9 +73,9 @@ jobs:
         dir
         
         echo ============== UpdatePack7R2 Running ==============
-        echo ============== ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim ==============
+        echo ============== ${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim ==============
         
-        UpdatePack7R2.exe /ie11 /WimFile=${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=4 /NoUSB /Optimize=esd
+        UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=4 /NoUSB /Optimize=esd
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
