@@ -69,7 +69,7 @@ jobs:
         overwrite_files: true
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}
+            - **Product**: ${{ env.FILE_NAME }} PRO
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
             - **Build Date**: ${{ steps.time.outputs.timestamp }}

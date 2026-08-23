@@ -44,7 +44,7 @@ jobs:
 
     - name: Multi-volume Compression
       run: |
-        7z a -t7z -v1780M -mx=0 ${{ env.FILE_NAME }}-${{ env.Build_VERSION }}.7z ./${{ env.FILE_NAME }}/*.iso
+        7z a -t7z -v1780M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z ./${{ env.FILE_NAME }}/*.iso
         
     - name: Execution completed
       shell: cmd
@@ -57,25 +57,24 @@ jobs:
           
     - uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.FILE_NAME }}-${{ env.Build_VERSION }}
-        path: ${{ env.FILE_NAME }}-${{ env.Build_VERSION }}.7z*
+        name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
+        path: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
 
     - name: Release
       uses: softprops/action-gh-release@v3
       with:
-        tag_name: ${{ env.FILE_NAME }}
         overwrite_files: true
+        fail_on_unmatched_files: true
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}
+            - **Product**: ${{ env.FILE_NAME }} PRO
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
             - **Build Date**: ${{ steps.time.outputs.timestamp }}
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
-                   
-        fail_on_unmatched_files: true
-        name: ${{ env.FILE_NAME }}-${{ env.Build_VERSION }}
-        files: ${{ env.FILE_NAME }}-${{ env.Build_VERSION }}.7z*
+        tag_name: ${{ env.FILE_NAME }}        
+        name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
+        files: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
 
 

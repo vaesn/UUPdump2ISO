@@ -77,7 +77,7 @@ jobs:
         dir
         
         echo ============== UpdatePack7R2 Running ==============
-        echo "${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}"
+        echo "${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}"
         
         UpdatePack7R2.exe /ie11 /WimFile=${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=* /NoUSB /Optimize=esd
         
@@ -99,9 +99,9 @@ jobs:
         
     - name: Mirrored product compression and splitting
       run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z ./${{ env.FILE_NAME }}.wim
+        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ./${{ env.FILE_NAME }}.wim
         
-        7z a -t7z -mx=0 UpdatePack7R2-log.7z C:\WINDOWS\UpdatePack7.log
+        7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
         
     - name: Upload-Artifact
       shell: cmd
@@ -114,13 +114,13 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: UpdatePack7R2-log
-        path: UpdatePack7R2-log.7z
+        name: UpdatePack7R2_log
+        path: UpdatePack7R2_log.7z
 
     - uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}
-        path: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z.*
+        name: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}
+        path: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
 
     - name: Automated Release
       uses: softprops/action-gh-release@v3
@@ -129,12 +129,12 @@ jobs:
         overwrite_files: true        
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}
-            - **Version**: Windows7_x64_SP1 旗舰版 ${{ env.UpdatePack7R2_VERSION }}
+            - **Product**: ${{ env.FILE_NAME }} SP1 旗舰版
+            - **Version**: ${{ env.UpdatePack7R2_VERSION }}
             - **Language**: ZH_CN
             - **Build Date**: ${{ steps.time.outputs.timestamp }}
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
         tag_name: ${{ env.FILE_NAME }}
-        name: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}
-        files: ${{ env.FILE_NAME }}-${{ env.UpdatePack7R2_VERSION }}.7z.*
+        name: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}
+        files: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
