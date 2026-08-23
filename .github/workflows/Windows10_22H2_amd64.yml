@@ -12,15 +12,8 @@ env:
 jobs:
   Windows10_22H2_amd64_Cumulative_Update:
     runs-on: windows-latest
-
     steps:
-    - name: Generate Timestamp
-      id: time
-      shell: pwsh
-      run: |
-        $timestamp = Get-Date -Format "yyyyMMddHHmm"
-        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
-        
+      
     - name: Checkout repository
       uses: actions/checkout@v5
 
@@ -69,10 +62,9 @@ jobs:
         overwrite_files: true
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }} PRO
+            - **Product**: ${{ env.FILE_NAME }}_Cumulative_Update_PRO
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
-            - **Build Date**: ${{ steps.time.outputs.timestamp }}
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
         name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}

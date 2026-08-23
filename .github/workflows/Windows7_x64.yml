@@ -12,15 +12,10 @@ jobs:
   Windows7_x64_UpdatePack7R2:
     runs-on: windows-latest
     steps:
-    - name: Generate Timestamp
-      id: time
-      shell: pwsh
-      run: |
-        $timestamp = Get-Date -Format "yyyyMMddHHmm"
-        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
+
     - name: Checkout repository
       uses: actions/checkout@v5
-    # init
+
     - name: Get Tools and Wim
       shell: pwsh
       run: |
@@ -77,9 +72,9 @@ jobs:
         dir
         
         echo ============== UpdatePack7R2 Running ==============
-        echo "${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}"
+        echo ============== ${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim ==============
         
-        UpdatePack7R2.exe /ie11 /WimFile=${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=* /NoUSB /Optimize=esd
+        UpdatePack7R2.exe /ie11 /WimFile=${{ env.GITHUB_WORKSPACE }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=4 /NoUSB /Optimize=esd
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
@@ -129,10 +124,9 @@ jobs:
         overwrite_files: true        
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }} SP1 旗舰版
+            - **Product**: ${{ env.FILE_NAME }}_SP1_旗舰版
             - **Version**: ${{ env.UpdatePack7R2_VERSION }}
             - **Language**: ZH_CN
-            - **Build Date**: ${{ steps.time.outputs.timestamp }}
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
         tag_name: ${{ env.FILE_NAME }}

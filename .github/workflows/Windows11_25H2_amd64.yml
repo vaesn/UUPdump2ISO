@@ -12,15 +12,8 @@ env:
 jobs:
   Windows11_25H2_amd64:
     runs-on: windows-latest
-
     steps:
-    - name: Generate Timestamp
-      id: time
-      shell: pwsh
-      run: |
-        $timestamp = Get-Date -Format "yyyyMMddHHmm"
-        echo "timestamp=$($timestamp.Trim())" >> $env:GITHUB_OUTPUT
-        
+
     - name: Checkout repository
       uses: actions/checkout@v5
 
@@ -67,10 +60,9 @@ jobs:
         fail_on_unmatched_files: true
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }} PRO
+            - **Product**: ${{ env.FILE_NAME }}_PRO
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
-            - **Build Date**: ${{ steps.time.outputs.timestamp }}
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
         tag_name: ${{ env.FILE_NAME }}        
