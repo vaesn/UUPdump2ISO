@@ -25,6 +25,9 @@ jobs:
         pwd
         Write-Host "-----当前目录下的文件-----"
         ls
+        # DirectX_June2010
+        # curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
+        # curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
         # dotNetFx48
         curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
         curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
@@ -46,7 +49,7 @@ jobs:
         curl -L -o ${{ env.FILE_NAME }}.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
         curl -L -o ${{ env.FILE_NAME }}.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
         7z x ${{ env.FILE_NAME }}.7z.001
-        Rename-Item -Path "*.wim" -NewName "${{ env.FILE_NAME }}.wim"
+        # Rename-Item -Path "*.wim" -NewName "${{ env.FILE_NAME }}.wim"
         Write-Host "=====当前目录====="
         pwd
         Write-Host "=====当前目录下的文件====="
@@ -74,7 +77,7 @@ jobs:
         echo ============== UpdatePack7R2 Running ==============
         echo ============== ${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim ==============
         
-        UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=4 /NoUSB /Optimize=esd
+        UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=* /NoUSB /Optimize=esd
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
@@ -94,14 +97,15 @@ jobs:
         
     - name: Mirrored product compression and splitting
       run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ./${{ env.FILE_NAME }}.wim
+        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ./${{ env.FILE_NAME }}.esd
         
-        7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
+        # 7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
         
     - name: Upload-Artifact
       shell: cmd
       run: |
         cd ${{env.FILE_NAME}}
+        copy "C:\WINDOWS\UpdatePack7.log" .
         echo =====当前目录=====
         cd
         echo =====当前目录下所有文件=====
@@ -109,8 +113,8 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: UpdatePack7R2_log
-        path: UpdatePack7R2_log.7z
+        name: UpdatePack7
+        path: UpdatePack7.log
 
     - uses: actions/upload-artifact@v4
       with:
