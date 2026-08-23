@@ -97,7 +97,7 @@ jobs:
         
     - name: Mirrored product compression and splitting
       run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ./${{ env.FILE_NAME }}.esd
+        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.esd
         
         # 7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
         
