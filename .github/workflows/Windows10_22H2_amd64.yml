@@ -1,4 +1,4 @@
-name: Windows10_22H2_amd64_Cumulative_Update
+name: Windows10_22H2_amd64
 
 on: workflow_dispatch
 
