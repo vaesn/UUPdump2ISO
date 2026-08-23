@@ -20,14 +20,14 @@ jobs:
     - name: Get Tools and Wim
       shell: pwsh
       run: |
-        cd ${{ env.FILE_NAME }}
+        # cd ${{ env.FILE_NAME }}
         Write-Host "-----当前目录-----"
         pwd
         Write-Host "-----当前目录下的文件-----"
         ls
         # DirectX_June2010
-        # curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
-        # curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
+        curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
+        curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
         # dotNetFx48
         curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
         curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
@@ -49,7 +49,7 @@ jobs:
         curl -L -o ${{ env.FILE_NAME }}.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
         curl -L -o ${{ env.FILE_NAME }}.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
         7z x ${{ env.FILE_NAME }}.7z.001
-        # Rename-Item -Path "*.wim" -NewName "${{ env.FILE_NAME }}.wim"
+        Rename-Item -Path "*.wim" -NewName "install.wim"
         Write-Host "=====当前目录====="
         pwd
         Write-Host "=====当前目录下的文件====="
@@ -58,8 +58,8 @@ jobs:
     - name: Ready to begin
       shell: cmd
       run: |
-        cd ${{env.FILE_NAME}}
-        ren "*.wim" "${{ env.FILE_NAME }}.wim"
+        # cd ${{env.FILE_NAME}}
+        # ren "*.wim" "${{ env.FILE_NAME }}.wim"
         echo =====当前目录=====
         cd
         echo =====当前目录下所有文件=====
@@ -68,16 +68,16 @@ jobs:
     - name: UpdatePack7R2 Running
       shell: cmd
       run: |
-        cd ${{ env.FILE_NAME }}
+        # cd ${{ env.BASE_DIR }}
         echo =====当前目录=====
         cd
         echo =====当前目录下所有文件=====
         dir
         
         echo ============== UpdatePack7R2 Running ==============
-        echo ============== ${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim ==============
+        echo ============== ${{ env.GITHUB_WORKSPACE }}\%GITHUB_WORKSPACE% ==============
         
-        UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.wim /Index=* /NoUSB /Optimize=esd
+        UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\install.wim /Index=4 /NoUSB /Optimize
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
@@ -89,7 +89,8 @@ jobs:
     - name: Execution completed
       shell: pwsh
       run: |
-        cd ${{env.FILE_NAME}}
+        # cd ${{env.FILE_NAME}}
+        # Rename-Item -Path "*.wim" -NewName "install.wim"
         Write-Host "-----当前目录-----"
         pwd
         Write-Host "-----当前目录下的文件-----"
@@ -97,14 +98,14 @@ jobs:
         
     - name: Mirrored product compression and splitting
       run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ${{ env.BASE_DIR }}\${{ env.FILE_NAME }}\${{ env.FILE_NAME }}.esd
+        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ${{ env.BASE_DIR }}\install.wim
         
         # 7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
         
     - name: Upload-Artifact
       shell: cmd
       run: |
-        cd ${{env.FILE_NAME}}
+        # cd ${{env.FILE_NAME}}
         copy "C:\WINDOWS\UpdatePack7.log" .
         echo =====当前目录=====
         cd
@@ -128,7 +129,7 @@ jobs:
         overwrite_files: true        
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}_SP1_旗舰版
+            - **Product**: ${{ env.FILE_NAME }}_ULTIMATE_SP1_旗舰版
             - **Version**: ${{ env.UpdatePack7R2_VERSION }}
             - **Language**: ZH_CN
             ---
