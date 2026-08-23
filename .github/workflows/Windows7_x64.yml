@@ -98,15 +98,15 @@ jobs:
         
     - name: Mirrored product compression and splitting
       run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z ${{ env.BASE_DIR }}\install.wim
+        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
         
-        # 7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
+        7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
         
     - name: Upload-Artifact
       shell: cmd
       run: |
         # cd ${{env.FILE_NAME}}
-        copy "C:\WINDOWS\UpdatePack7.log" .
+        # copy "C:\WINDOWS\UpdatePack7.log" .
         echo =====当前目录=====
         cd
         echo =====当前目录下所有文件=====
@@ -114,8 +114,8 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: UpdatePack7
-        path: UpdatePack7.log
+        name: UpdatePack7R2_log
+        path: UpdatePack7R2_log.7z
 
     - uses: actions/upload-artifact@v4
       with:
