@@ -35,7 +35,7 @@ jobs:
         echo =====After 当前目录下所有文件 =====
         dir
 
-    - name: Compress
+    - name: Compress with 7z
       shell: cmd
       run: |
         7z a -t7z -v1780M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
@@ -51,13 +51,13 @@ jobs:
         ls
         Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
 
-          
-   # - uses: actions/upload-artifact@v4
-   #   with:
-   #     name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
-   #     path: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
+    - name: Delete Old Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
+      run: gh release delete ${{env.FILE_NAME}} --cleanup-tag -y || true
 
-    - name: Release
+    - name: Build New Release
       uses: softprops/action-gh-release@v3
       with:
         overwrite_files: true
@@ -72,5 +72,4 @@ jobs:
         tag_name: ${{ env.FILE_NAME }}        
         name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
         files: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
-
-
+        
