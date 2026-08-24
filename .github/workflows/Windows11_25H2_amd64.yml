@@ -35,18 +35,22 @@ jobs:
         echo =====After 当前目录下所有文件 =====
         dir
 
-    - name: Multi-volume Compression
+    - name: Compress with 7z
+      shell: cmd
       run: |
         7z a -t7z -v1780M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
         
     - name: Execution completed
-      shell: cmd
+      shell: pwsh
       run: |
-        cd ${{ env.FILE_NAME }}
-        echo =====当前目录=====
-        cd
-        echo =====当前目录下所有文件=====
-        dir
+        cd ${{env.FILE_NAME}}
+       # Rename-Item -Path "*.iso" -NewName "${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.iso"
+        Write-Host "-----当前目录-----"
+        pwd
+        Write-Host "-----当前目录下的文件-----"
+        ls
+        Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
+
           
    # - uses: actions/upload-artifact@v4
    #   with:

@@ -6,7 +6,7 @@ permissions:
   contents: write
 
 env:
-  UpdatePack7R2_VERSION: '26.1.15'
+  UpdatePack7R2_VERSION: 'UpdatePack7R2_26.1.15'
   FILE_NAME: Windows7_x64
   BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
 jobs:
