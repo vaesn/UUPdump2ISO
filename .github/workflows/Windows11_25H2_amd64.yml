@@ -38,7 +38,7 @@ jobs:
     - name: Compress with 7z
       shell: cmd
       run: |
-        7z a -t7z -v1780M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
+        7z a -t7z -v1750M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
         
     - name: Execution completed
       shell: pwsh

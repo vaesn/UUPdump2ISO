@@ -93,7 +93,7 @@ jobs:
     - name: Compress with 7z
       shell: cmd
       run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
+        7z a -t7z -v1600M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
         
     - name: Execution completed
       shell: pwsh
