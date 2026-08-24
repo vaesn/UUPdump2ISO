@@ -45,7 +45,7 @@ jobs:
       shell: pwsh
       run: |
         cd ${{env.FILE_NAME}}
-       # Rename-Item -Path "*.iso" -NewName "${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.iso"
+        #Rename-Item -Path "*.iso" -NewName "${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.iso"
         Write-Host "-----当前目录-----"
         pwd
         Write-Host "-----当前目录下的文件-----"

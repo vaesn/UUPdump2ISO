@@ -120,7 +120,7 @@ jobs:
       uses: softprops/action-gh-release@v3
       with:
         fail_on_unmatched_files: true
-        overwrite_files: true        
+        overwrite_files: true
         body: |
             ## 🚀 Automated Release
             - **Product**: ${{ env.FILE_NAME }}_Ultimate_SP1_UpdatePack7R2 旗舰版
