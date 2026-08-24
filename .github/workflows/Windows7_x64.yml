@@ -1,4 +1,4 @@
-name: Windows7_x64
+name: Windows7_x64_Ultimate_UpdatePack7R2
 
 on: workflow_dispatch
 
@@ -10,7 +10,7 @@ env:
   FILE_NAME: Windows7_x64
   BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
 jobs:
-  Windows7_x64_UpdatePack7R2:
+  Windows7_x64_Ultimate_UpdatePack7R2:
     runs-on: windows-latest
     steps:
 
@@ -21,6 +21,7 @@ jobs:
       shell: pwsh
       run: |
         # cd ${{ env.FILE_NAME }}
+
         Write-Host "-----当前目录-----"
         pwd
         Write-Host "-----当前目录下的文件-----"
@@ -45,11 +46,13 @@ jobs:
         # DirectX_June2010
         # UpdatePack7R2
         curl -L -o UpdatePack7R2.exe https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
-        # install_Windows7x64ULTIMATE.wim
-        curl -L -o ${{ env.FILE_NAME }}.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
-        curl -L -o ${{ env.FILE_NAME }}.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
-        7z x ${{ env.FILE_NAME }}.7z.001
+        # install_Windows7x64Ultimate.wim
+        curl -L -o ${{ env.FILE_NAME }}_Temp.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
+        curl -L -o ${{ env.FILE_NAME }}_Temp.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
+        7z x ${{ env.FILE_NAME }}_Temp.7z.001 -y
+        Start-Sleep -Seconds 6
         Rename-Item -Path "*.wim" -NewName "install.wim"
+        Remove-Item -Path "*.7z.*" -Force
         Write-Host "=====当前目录====="
         pwd
         Write-Host "=====当前目录下的文件====="
@@ -75,9 +78,9 @@ jobs:
         dir
         
         echo ============== UpdatePack7R2 Running ==============
-        echo ============== ${{ env.GITHUB_WORKSPACE }}\%GITHUB_WORKSPACE% ==============
+        echo Workspace is: %GITHUB_WORKSPACE%
         
-        UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\install.wim /Index=4 /NoUSB /Optimize
+        .\UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\install.wim /Index=4 /NoUSB /Optimize
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
@@ -100,27 +103,25 @@ jobs:
       run: |
         7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
         
-        7z a -t7z -mx=0 UpdatePack7R2_log.7z C:\WINDOWS\UpdatePack7.log
-        
-    - name: Upload-Artifact
+    - name: Show List
       shell: cmd
       run: |
         # cd ${{env.FILE_NAME}}
-        # copy "C:\WINDOWS\UpdatePack7.log" .
+        copy "C:\WINDOWS\UpdatePack7.log" ".\UpdatePack7.log"
         echo =====当前目录=====
         cd
         echo =====当前目录下所有文件=====
         dir
       
-    - uses: actions/upload-artifact@v4
-      with:
-        name: UpdatePack7R2_log
-        path: UpdatePack7R2_log.7z
+   # - uses: actions/upload-artifact@v4
+   #   with:
+   #     name: UpdatePack7
+   #     path: C:\WINDOWS\UpdatePack7.log
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}
-        path: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
+   # - uses: actions/upload-artifact@v4
+   #   with:
+   #     name: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}
+   #     path: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
 
     - name: Automated Release
       uses: softprops/action-gh-release@v3
@@ -129,11 +130,16 @@ jobs:
         overwrite_files: true        
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}_ULTIMATE_SP1_旗舰版
+            - **Product**: ${{ env.FILE_NAME }}_Ultimate_SP1_UpdatePack7R2 旗舰版
             - **Version**: ${{ env.UpdatePack7R2_VERSION }}
             - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
         tag_name: ${{ env.FILE_NAME }}
         name: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}
-        files: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
+        # files: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
+        files: |
+             UpdatePack7.log
+             ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
+              
+              

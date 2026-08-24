@@ -28,7 +28,7 @@ jobs:
         dir
         echo ============== Running ==============
         
-        uup_download_windows.cmd
+        .\uup_download_windows.cmd
         
         echo ============== Execution completed ==============
         echo =====After 当前目录 =====
@@ -38,7 +38,7 @@ jobs:
 
     - name: Multi-volume Compression
       run: |
-        7z a -t7z -v1850M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z ./${{ env.FILE_NAME }}/*.iso
+        7z a -t7z -v1850M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
 
     - name: Execution completed
       shell: cmd
@@ -49,10 +49,10 @@ jobs:
         echo =====当前目录下所有文件=====
         dir
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
-        path: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
+   # - uses: actions/upload-artifact@v4
+   #   with:
+   #     name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
+   #     path: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
 
     - name: Release
       uses: softprops/action-gh-release@v3
