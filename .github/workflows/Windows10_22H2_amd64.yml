@@ -36,7 +36,7 @@ jobs:
         echo =====After 当前目录下所有文件 =====
         dir
 
-    - name: Compress with 7z
+    - name: Compress 7z
       shell: cmd
       run: |
         7z a -t7z -v1850M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
