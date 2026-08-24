@@ -56,7 +56,8 @@ jobs:
         Write-Host "=====当前目录====="
         pwd
         Write-Host "=====当前目录下的文件====="
-        ls
+        Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
+
         
     - name: Ready to begin
       shell: cmd
@@ -76,11 +77,11 @@ jobs:
         cd
         echo =====当前目录下所有文件=====
         dir
-        
+        set "FULL_WIM_DIR=%GITHUB_WORKSPACE%\install.wim"
         echo ============== UpdatePack7R2 Running ==============
-        echo Workspace is: %GITHUB_WORKSPACE%
+        echo Workspace is: %GITHUB_WORKSPACE% OR %FULL_WIM_DIR%
         
-        .\UpdatePack7R2.exe /ie11 /WimFile=${{ env.BASE_DIR }}\install.wim /Index=4 /NoUSB /Optimize
+        .\UpdatePack7R2.exe /ie11 /WimFile=%FULL_WIM_DIR% /Index=4 /NVMe /NoUSB /Optimize
         
         echo ============== UpdatePack7R2 Execution completed ==============
         
@@ -89,29 +90,21 @@ jobs:
         echo =====After 当前目录下所有文件=====
         dir
 
+    - name: Compress with 7z
+      shell: cmd
+      run: |
+        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
+        
     - name: Execution completed
       shell: pwsh
       run: |
         # cd ${{env.FILE_NAME}}
         # Rename-Item -Path "*.wim" -NewName "install.wim"
+        Copy-Item "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force
         Write-Host "-----当前目录-----"
         pwd
         Write-Host "-----当前目录下的文件-----"
-        ls
-        
-    - name: Mirrored product compression and splitting
-      run: |
-        7z a -t7z -v1950M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
-        
-    - name: Show List
-      shell: cmd
-      run: |
-        # cd ${{env.FILE_NAME}}
-        copy "C:\WINDOWS\UpdatePack7.log" ".\UpdatePack7.log"
-        echo =====当前目录=====
-        cd
-        echo =====当前目录下所有文件=====
-        dir
+        Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
       
    # - uses: actions/upload-artifact@v4
    #   with:
