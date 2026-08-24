@@ -67,7 +67,7 @@ jobs:
             ## 🚀 Automated Release
             - **Product**: ${{ env.FILE_NAME }}_Cumulative_Update_PRO
             - **Version**: ${{ env.Build_VERSION }}
-            - **Language**: ZH_CN 
+            - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
         name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
