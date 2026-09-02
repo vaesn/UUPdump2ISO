@@ -37,6 +37,7 @@ jobs:
         ls
         cd ./oscdimg
         ls
+        cd ..
         cd ./wimlib
         ls
 
