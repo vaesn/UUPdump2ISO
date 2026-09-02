@@ -1,133 +1,46 @@
-name: Windows7_x64_Ultimate_UpdatePack7R2
-
+name: Win7_x64_Ultimate_UpdatePack7R2
 on: workflow_dispatch
-
 permissions:
   contents: write
-
 env:
   UpdatePack7R2_VERSION: '26.1.15'
-  FILE_NAME: Windows7_x64
+  FILE_NAME: win7
   BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
 jobs:
-  Windows7_x64_Ultimate_UpdatePack7R2:
+  Win7_x64_Ultimate_UpdatePack7R2:
     runs-on: windows-latest
     steps:
-
     - name: Checkout repository
       uses: actions/checkout@v5
 
-    - name: Get Tools and Wim
+    - name: 1. Initialize Workspace
       shell: pwsh
+      working-directory: .
       run: |
-        # cd ${{ env.FILE_NAME }}
-
-        Write-Host "-----当前目录-----"
-        pwd
-        Write-Host "-----当前目录下的文件-----"
+        mkdir -Force src
+        mkdir -Force lib
+        mkdir -Force utils
+        mkdir -Force dist
         ls
-        # DirectX_June2010
-        curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
-        curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
-        # dotNetFx48
-        curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
-        curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
-        # dotNetFx48LP
-        curl -L -o dotNetFx48LP_x64_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x64_CHS.WA
-        curl -L -o dotNetFx48LP_x86_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x86_CHS.WA
-        # vcredist
-        curl -L -o vcredist_x64_Win7_20250708.WA https://gitlab.com/-/project/11037551/uploads/8899c68cf5b5bfc7da7f04b73afa9f58/vcredist_x64_Win7_20250708.WA
-        curl -L -o vcredist_x86_Win7_20250708_r.WA https://gitlab.com/-/project/11037551/uploads/49d56348397669befad302f58070ab2f/vcredist_x86_Win7_20250708_r.WA
-        # vcredist
-        curl -L -o vcredist_x64_2022_WinAll_14.44.35211.WA https://gitlab.com/-/project/11037551/uploads/ce26d073600eb68db902bc12946d42e7/vcredist_x64_2022_WinAll_14.44.35211.WA
-        curl -L -o vcredist_x86_2022_WinAll_14.44.35211_r.WA https://gitlab.com/-/project/11037551/uploads/16a7925f42634ef7232d7d9cc122034a/vcredist_x86_2022_WinAll_14.44.35211_r.WA
-        # SmartFix
-        curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
-        # DirectX_June2010
-        # UpdatePack7R2
-        curl -L -o UpdatePack7R2.exe https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
-        # install_Windows7x64Ultimate.wim
-        curl -L -o ${{ env.FILE_NAME }}_Temp.7z.001 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.001
-        curl -L -o ${{ env.FILE_NAME }}_Temp.7z.002 https://github.com/yuanpeirong/UpdatePack7R2/releases/download/Windows7x64/install_Windows7x64ULTIMATE.7z.002
-        7z x ${{ env.FILE_NAME }}_Temp.7z.001 -y
-        Start-Sleep -Seconds 6
-        Rename-Item -Path "*.wim" -NewName "install.wim"
-        Remove-Item -Path "*.7z.*" -Force
-        Write-Host "=====当前目录====="
-        pwd
-        Write-Host "=====当前目录下的文件====="
-        Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
+        
 
         
-    - name: Ready to begin
-      shell: cmd
-      run: |
-        # cd ${{env.FILE_NAME}}
-        # ren "*.wim" "${{ env.FILE_NAME }}.wim"
-        echo =====当前目录=====
-        cd
-        echo =====当前目录下所有文件=====
-        dir
-        
-    - name: UpdatePack7R2 Running
-      shell: cmd
-      run: |
-        # cd ${{ env.BASE_DIR }}
-        echo =====当前目录=====
-        cd
-        echo =====当前目录下所有文件=====
-        dir
-        set "FULL_WIM_DIR=%GITHUB_WORKSPACE%\install.wim"
-        echo ============== UpdatePack7R2 Running ==============
-        echo Workspace is: %GITHUB_WORKSPACE% OR %FULL_WIM_DIR%
-        
-        .\UpdatePack7R2.exe /ie11 /WimFile=%FULL_WIM_DIR% /Index=4 /NoUSB /Optimize
-        
-        echo ============== UpdatePack7R2 Execution completed ==============
-        
-        echo =====After 当前目录=====
-        cd
-        echo =====After 当前目录下所有文件=====
-        dir
-
-    - name: Compress with 7z
-      shell: cmd
-      run: |
-        7z a -t7z -v1600M -mx=0 ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z .\install.wim
-        
-    - name: Execution completed
+    - name: 3. Download Utiles
       shell: pwsh
+      working-directory: ./utils
       run: |
-        # cd ${{env.FILE_NAME}}
-        # Rename-Item -Path "*.wim" -NewName "install.wim"
-        Copy-Item "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force
-        Write-Host "-----当前目录-----"
-        pwd
-        Write-Host "-----当前目录下的文件-----"
-        Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
+        # DirectX_June2010
+        curl -L -o oscdimg.zip https://github.com/officialmofabs/oscdimg/raw/main/oscdimg-amd64.zip
+        curl -L -o wimlib.zip https://wimlib.net/downloads/wimlib-1.14.5-windows-x86_64-bin.zip
+        7z x oscdimg.zip -o"oscdimg" -y
+        7z x wimlib.zip -o"wimlib" -y
+        ls
+        cd ./oscdimg
+        ls
+        cd ./wimlib
+        ls
 
-    - name: Delete Old Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: bash
-      run: gh release delete ${{env.FILE_NAME}} --cleanup-tag -y || true
 
-    - name: Build New Release
-      uses: softprops/action-gh-release@v3
-      with:
-        fail_on_unmatched_files: true
-        overwrite_files: true
-        body: |
-            ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}_Ultimate_SP1_UpdatePack7R2 旗舰版
-            - **Version**: ${{ env.UpdatePack7R2_VERSION }}
-            - **Language**: ZH_CN
-            ---
-            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
-        tag_name: ${{ env.FILE_NAME }}
-        name: ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}
-        files: |
-             UpdatePack7.log
-             ${{ env.FILE_NAME }}_${{ env.UpdatePack7R2_VERSION }}.7z.*
-              
-              
+        
+
+        
