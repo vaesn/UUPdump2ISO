@@ -40,11 +40,15 @@ jobs:
           
           #Rename-Item -Path "UpdatePack7R2-26.1.15.exe" -NewName "UpdatePack7R2.exe"
           #Remove-Item -Path UpdatePack7R2+Downloader.exe -Force
-          Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons" -Force
+          Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons\UpdatePack7R2.exe" -Force
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
           ls
           pwd
-          cd ..\addons
+      - name: Step-4 Get Utiles
+        shell: pwsh
+        working-directory: ./addons
+        run: |
           ls
           pwd
+
