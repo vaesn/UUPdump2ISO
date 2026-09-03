@@ -67,10 +67,16 @@ jobs:
         shell: pwsh
         working-directory: ./src
         run: |
-          curl -L -o win7.iso https://tempdelivery.13376767.xyz/cndb/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso?t=JtiXOBB9LeoaYPPP&a=4134&u=q0sASw87GIY85Cvt&sig=821cdbfaea1626149e385cdeac8f3965450018a76b5ad637a4498ffa9b4bbc62
-
+          # cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
+          curl -L -o win7z.7z.001 https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.001
+          curl -L -o win7z.7z.002 https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.002
+          7z x win7z.7z.001 -y
+          Start-Sleep -Seconds 6
+          Rename-Item -Path "*.iso" -NewName "win7.iso"
+          Remove-Item -Path "*.7z.*" -Force
           7z x win7.iso -o"win7" -y
           Remove-Item -Path "*.iso" -Force
+
           #Move-Item -Path ".\win7\sources\install.wim", ".\win7\sources\boot.wim" -Destination ".\addons\" -Force
           #Move-Item -Path ".\win7\sources\*.wim" -Destination ".\addons\" -Force
 
