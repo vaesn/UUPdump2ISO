@@ -71,8 +71,8 @@ jobs:
 
           7z x win7.iso -o"win7" -y
           Remove-Item -Path "*.iso" -Force
-          #Move-Item -Path ".\win7\sources\install.wim", ".\win7\sources\boot.wim" -Destination ".\addons" -Force
-          #Move-Item -Path ".\win7\sources\*.wim" -Destination ".\addons" -Force
+          #Move-Item -Path ".\win7\sources\install.wim", ".\win7\sources\boot.wim" -Destination ".\addons\" -Force
+          #Move-Item -Path ".\win7\sources\*.wim" -Destination ".\addons\" -Force
 
       - name: Step-5 Extract Source ISO Ultimate Index=4
         working-directory: ./src
