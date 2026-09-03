@@ -1,5 +1,7 @@
 name: Windows10_22H2_amd64
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+
 permissions:
   contents: write
 env:
