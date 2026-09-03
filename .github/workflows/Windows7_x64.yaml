@@ -25,7 +25,7 @@ jobs:
           mkdir -Force addons
           mkdir -Force utils
           mkdir -Force dist
-		      mkdir -Force out
+          mkdir -Force out
           
       - name: Step-2 Get Addons Files
         shell: pwsh
