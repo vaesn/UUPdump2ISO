@@ -1,0 +1,48 @@
+name: Windows10_22H2_amd64
+on: workflow_dispatch
+permissions:
+  contents: write
+env:
+  Build_VERSION: '19045.7663'
+  UUP_DIR: Windows10_22H2_amd64
+jobs:
+  Windows10_22H2_amd64_Cumulative_Update:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: UUP DUMP Build ISO
+        working-directory: ./Windows10_22H2_amd64
+        shell: pwsh
+        run: |
+          uup_download_windows.cmd
+
+      - name: Split Archive
+        working-directory: .
+        shell: pwsh
+        run: |
+          7z a -t7z -v1820M -mx=0 ${{ env.UUP_DIR }}_${{ env.Build_VERSION }}.7z *.iso
+          
+      - name: Delete Old Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release delete ${{env.UUP_DIR}} --cleanup-tag -y || true
+        
+      - name: Build New Release
+        uses: softprops/action-gh-release@v3
+        working-directory: .
+        with:
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.UUP_DIR }}_Cumulative_Update_PRO
+            - **Version**: ${{ env.Build_VERSION }}
+            - **Language**: ZH_CN
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+          tag_name: ${{env.UUP_DIR}}
+          name: ${{ env.UUP_DIR }}_${{ env.Build_VERSION }}
+          files: ${{ env.UUP_DIR }}_${{ env.Build_VERSION }}.7z*

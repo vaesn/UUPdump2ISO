@@ -1,0 +1,47 @@
+name: Win7_x64_Ultimate_UpdatePack7R2
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+env:
+  UpdatePack7R2_VERSION: '26.1.15'
+  FILE_NAME: Windows7_x64
+  BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
+  FINAL_ISO_NAME: Win7_x64_Ultimate_UpdatePack7R2_260115
+  ISO_LABEL: Win7_x64_Ultimate_UpdatePack7R2
+jobs:
+  Win7_x64_Ultimate_UpdatePack7R2:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        
+      - name: Step-1 Initialize Workspace
+        shell: pwsh
+        working-directory: .
+        run: |
+          mkdir -Force src
+          mkdir -Force addons
+          mkdir -Force utils
+          mkdir -Force dist
+          
+
+      - name: Step-3 Get Utiles
+        shell: pwsh
+        working-directory: ./utils
+        run: |
+          # DirectX_June2010
+          curl -L -o oscdimg.zip https://github.com/officialmofabs/oscdimg/raw/main/oscdimg-amd64.zip
+          curl -L -o wimlib.zip https://wimlib.net/downloads/wimlib-1.14.5-windows-x86_64-bin.zip
+          curl -L -o UpdatePack7R2+Downloader.exe https://update7.simplix.info/UpdatePack7R2.exe
+          
+          .\UpdatePack7R2+Downloader.exe
+          
+          Rename-Item -Path "UpdatePack7R2-26.1.15.exe" -NewName "UpdatePack7R2.exe"
+          Remove-Item -Path UpdatePack7R2+Downloader.exe -Force
+          Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons" -Force
+          7z x oscdimg.zip -o"oscdimg" -y
+          7z x wimlib.zip -o"wimlib" -y
+          ls
+          pwd
