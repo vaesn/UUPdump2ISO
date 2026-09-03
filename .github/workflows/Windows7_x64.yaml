@@ -25,7 +25,6 @@ jobs:
           mkdir -Force addons
           mkdir -Force utils
           mkdir -Force dist
-          mkdir -Force out
           
       - name: Step-2 Get Addons Files
         shell: pwsh
@@ -103,9 +102,9 @@ jobs:
         shell: pwsh
         working-directory: .
         run: |
-          7z a -t7z -v1600M -mx=0 .\out\${{ env.ISO_LABEL }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
-          Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\out\UpdatePack7.log" -Force
-          Move-Item -Path ".\src\dism_export.log" -Destination ".\out\dism_export.log" -Force
+          7z a -t7z -v1600M -mx=0 .\${{ env.ISO_LABEL }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
+          Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force
+          Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force
               
       - name: Step-9 Delete Old Release
         env:
@@ -118,7 +117,6 @@ jobs:
         with:
           fail_on_unmatched_files: true
           overwrite_files: true
-		      working-directory: ./out
           body: |
             ## Win7_x64_Ultimate_UpdatePack7R2_260115
             - **构建时间**: ${{ github.event.head_commit.timestamp }}
