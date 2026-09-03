@@ -34,14 +34,17 @@ jobs:
           # DirectX_June2010
           curl -L -o oscdimg.zip https://github.com/officialmofabs/oscdimg/raw/main/oscdimg-amd64.zip
           curl -L -o wimlib.zip https://wimlib.net/downloads/wimlib-1.14.5-windows-x86_64-bin.zip
-          curl -L -o UpdatePack7R2+Downloader.exe https://update7.simplix.info/UpdatePack7R2.exe
+          curl -L -o UpdatePack7R2.exe https://v4.gh-proxy.org/https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
           
-          .\UpdatePack7R2+Downloader.exe
+          #.\UpdatePack7R2+Downloader.exe
           
           #Rename-Item -Path "UpdatePack7R2-26.1.15.exe" -NewName "UpdatePack7R2.exe"
           #Remove-Item -Path UpdatePack7R2+Downloader.exe -Force
-          #Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons" -Force
+          Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons" -Force
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
+          ls
+          pwd
+          cd ..\addons
           ls
           pwd
