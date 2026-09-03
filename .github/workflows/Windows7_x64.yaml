@@ -38,9 +38,9 @@ jobs:
           
           .\UpdatePack7R2+Downloader.exe
           
-          Rename-Item -Path "UpdatePack7R2-26.1.15.exe" -NewName "UpdatePack7R2.exe"
-          Remove-Item -Path UpdatePack7R2+Downloader.exe -Force
-          Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons" -Force
+          #Rename-Item -Path "UpdatePack7R2-26.1.15.exe" -NewName "UpdatePack7R2.exe"
+          #Remove-Item -Path UpdatePack7R2+Downloader.exe -Force
+          #Move-Item -Path ".\UpdatePack7R2.exe" -Destination ".\addons" -Force
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
           ls
