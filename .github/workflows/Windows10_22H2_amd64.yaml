@@ -34,7 +34,6 @@ jobs:
         
       - name: Build New Release
         uses: softprops/action-gh-release@v3
-        working-directory: .
         with:
           fail_on_unmatched_files: true
           overwrite_files: true
