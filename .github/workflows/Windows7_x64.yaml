@@ -34,8 +34,13 @@ jobs:
           curl -L -o wimlib.zip https://wimlib.net/downloads/wimlib-1.14.5-windows-x86_64-bin.zip
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
-          Move-Item -Path ".\oscdimg.zip" -Destination ".\addons" -Force
-          cd addons
+          Move-Item -Path ".\oscdimg.zip" -Destination "..\addons\" -Force
           ls
           pwd
 
+      - name: Step-4 Get Utiles
+        shell: pwsh
+        working-directory: ./addons
+        run: |
+          ls
+          pwd
