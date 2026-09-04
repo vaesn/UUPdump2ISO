@@ -24,7 +24,7 @@ jobs:
         working-directory: .
         shell: pwsh
         run: |
-          7z a -t7z -v1820M -mx=0 ${{ env.UUP_DIR }}_${{ env.Build_VERSION }}.7z *.iso
+          7z a -t7z -v1820M -mx=0 ${{ env.UUP_DIR }}_${{ env.Build_VERSION }}.7z .\${{ env.UUP_DIR }}\*.iso
           
       - name: Delete Old Release
         env:
