@@ -102,7 +102,9 @@ jobs:
         shell: pwsh
         working-directory: .
         run: |
-          .\utils\oscdimg\oscdimg.exe -m -u2 -bootdata:2#p0,e,b".\src\win7\boot\etfsboot.com"#pEF,e,b".\src\win7\efi\microsoft\boot\efisys.bin" ".\src\win7" ".\dist\$env:FINAL_ISO_NAME.iso" -l"$env:ISO_LABEL"
+          #.\utils\oscdimg\oscdimg.exe -m -u2 -bootdata:2#p0,e,b".\src\win7\boot\etfsboot.com"#pEF,e,b".\src\win7\efi\microsoft\boot\efisys.bin" ".\src\win7" ".\dist\$env:FINAL_ISO_NAME.iso" -l"$env:ISO_LABEL"
+          .\utils\oscdimg\oscdimg.exe -m -u2 -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin ".\src\win7" ".\dist\$env:FINAL_ISO_NAME.iso" -l"$env:ISO_LABEL"
+
           
       - name: Step-8 Split Archive
         shell: pwsh
