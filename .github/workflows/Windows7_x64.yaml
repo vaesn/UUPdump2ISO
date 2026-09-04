@@ -68,6 +68,8 @@ jobs:
         working-directory: ./src
         run: |
           # cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
+          curl -L -o autounattend.xml https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/autounattend.xml
+          curl -L -o PID.txt https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/PID.txt
           curl -L -o win7OG.7z.001 https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.001
           curl -L -o win7OG.7z.002 https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.002
           7z x win7OG.7z.001 -y
@@ -84,11 +86,15 @@ jobs:
           chcp 65001
           dism /Get-ImageInfo /ImageFile:".\win7\sources\install.wim"
           dism /Export-Image /SourceImageFile:".\win7\sources\install.wim" /SourceIndex:4 /DestinationImageFile:".\install.wim" /Compress:fast /LogPath:".\dism_export.log" | Out-Null
+          
           Write-Host "DISM Export Finished..."
           Remove-Item -Path ".\win7\sources\install.wim" -Force
           dism /Get-ImageInfo /ImageFile:".\install.wim"
-          Move-Item -Path ".\install.wim" -Destination ".\win7\sources\" -Force
           
+          Move-Item -Path ".\PID.txt" -Destination ".\win7\sources\" -Force
+          Move-Item -Path ".\autounattend.xml" -Destination ".\win7\" -Force
+          Move-Item -Path ".\install.wim" -Destination ".\win7\sources\" -Force
+
       - name: Step-6 Integrate Updates By UpdatePack7R2
         shell: cmd
         working-directory: ./addons
