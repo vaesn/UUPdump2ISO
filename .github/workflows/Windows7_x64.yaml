@@ -96,7 +96,7 @@ jobs:
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
           .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=1 /NVMe /Optimize
-          echo "NOW=$(date +'%Y-%m-%d %H:%M:%S')" >>$GITHUB_ENV
+          
       - name: Step-7 Repack to ISO
         shell: pwsh
         working-directory: .
@@ -125,7 +125,6 @@ jobs:
           overwrite_files: true
           body: |
             ## Win7_x64_Ultimate_UpdatePack7R2_260115
-            - **构建时间**: ${{ env.NOW }}
             - **原始母盘**: cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
             - **集成工具**: UpdatePack7R2_26.1.15
             ---
