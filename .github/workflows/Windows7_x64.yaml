@@ -33,7 +33,7 @@ jobs:
           # DirectX_June2010
           curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
           curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
-          
+
           # dotNetFx48
           curl -L -o dotNetFx48_20260811_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
           curl -L -o dotNetFx48_20260811_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
@@ -52,7 +52,7 @@ jobs:
 
           # SmartFix
           curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
-          curl -L -o UpdatePack7R2.exe https://github.com/yuanpeirong/UpdatePack7R2/releases/download/UpdatePack7R2/UpdatePack7R2-26.1.15.exe
+          curl -L -o UpdatePack7R2.exe https://github.com/vaesn/UUPdump2ISO/releases/download/win7old/UpdatePack7R2-26.1.15.exe
           
       - name: Step-3 Get Utiles
         shell: pwsh
@@ -81,7 +81,7 @@ jobs:
         working-directory: ./src
         shell: pwsh
         run: |
-          chcp 936
+          chcp 65001
           dism /Get-ImageInfo /ImageFile:".\win7\sources\install.wim"
           dism /Export-Image /SourceImageFile:".\win7\sources\install.wim" /SourceIndex:4 /DestinationImageFile:".\install.wim" /Compress:fast /LogPath:".\dism_export.log" | Out-Null
           Write-Host "DISM Export Finished..."
@@ -96,7 +96,7 @@ jobs:
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
           .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=1 /NVMe /Optimize
-          
+          echo "NOW=$(date +'%Y-%m-%d %H:%M:%S')" >>$GITHUB_ENV
       - name: Step-7 Repack to ISO
         shell: pwsh
         working-directory: .
@@ -117,9 +117,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release delete ${{env.FILE_NAME}} --cleanup-tag -y || true
-        
-      - name: Get Current Time
-        run: echo "NOW=$(date +'%Y-%m-%d %H:%M:%S')" >>$GITHUB_ENV
         
       - name: Step-10 Build New Release
         uses: softprops/action-gh-release@v3
