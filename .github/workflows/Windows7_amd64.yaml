@@ -1,4 +1,4 @@
-name: Win7_x64_Ultimate_UpdatePack7R2
+name: Win7_amd64_Ultimate_UpdatePack7R2
 on:
   workflow_dispatch:
 
@@ -6,12 +6,12 @@ permissions:
   contents: write
 env:
   UpdatePack7R2_VERSION: '26.1.15'
-  FILE_NAME: Windows7_x64
+  FILE_NAME: Windows7_amd64
   BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
-  FINAL_ISO_NAME: Win7_x64_Ultimate_UpdatePack7R2_260115
-  ISO_LABEL: Win7_x64_Ultimate_UpdatePack7R2
+  FINAL_ISO_NAME: Win7_amd64_Ultimate_UpdatePack7R2_260115
+  ISO_LABEL: Win7_amd64_Ultimate_UpdatePack7R2
 jobs:
-  Win7_x64_Ultimate_UpdatePack7R2:
+  Win7_amd64_Ultimate_UpdatePack7R2:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -101,7 +101,7 @@ jobs:
         shell: pwsh
         working-directory: .
         run: |
-          .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\$env:FINAL_ISO_NAME.iso -lWin7_x64_Ultimate_UpdatePack7R2
+          .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\$env:FINAL_ISO_NAME.iso -lWin7_amd64_Ultimate_UpdatePack7R2
 
       - name: Step-8 Split Archive
         shell: pwsh
@@ -123,8 +123,8 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: true
           body: |
-            ## Win7_x64_Ultimate_UpdatePack7R2_260115
-            - **最终产物**: Win7_x64_Ultimate_UpdatePack7R2_260115.iso
+            ## Win7_amd64_Ultimate_UpdatePack7R2_260115
+            - **最终产物**: Win7_amd64_Ultimate_UpdatePack7R2_260115.iso
             - **原始母盘**: cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
             - **集成工具**: UpdatePack7R2-26.1.15.exe [`https://blog.simplix.info/update7/`], SmartFix, DirectX, .NET Framework, Visual C++, autounattend.xml
             ---

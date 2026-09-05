@@ -6,7 +6,7 @@ permissions:
   contents: write
 
 env:
-  Build_VERSION: '26200.9278'
+  Build_VERSION: '26200.9168'
   FILE_NAME: Windows11_25H2_amd64
   
 jobs:
