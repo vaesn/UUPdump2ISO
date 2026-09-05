@@ -64,7 +64,6 @@ jobs:
         run: |
           # cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
           curl -L -o autounattend.xml https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/autounattend.xml
-          curl -L -o PID.txt https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/PID.txt
           curl -L -o win7src.7z.001 https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.001
           curl -L -o win7src.7z.002 https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.002
           7z x win7src.7z.001 -y
@@ -72,6 +71,7 @@ jobs:
           Rename-Item -Path "*.iso" -NewName "win7.iso"
           Remove-Item -Path "*.7z.*" -Force
           7z x win7.iso -o"win7" -y
+          Start-Sleep -Seconds 6
           Remove-Item -Path "*.iso" -Force
 
       - name: Step-5 Extract Source ISO Ultimate Index=4
@@ -86,7 +86,6 @@ jobs:
           Remove-Item -Path ".\win7\sources\install.wim" -Force
           dism /Get-ImageInfo /ImageFile:".\install.wim"
           
-          Move-Item -Path ".\PID.txt" -Destination ".\win7\sources\" -Force
           Move-Item -Path ".\autounattend.xml" -Destination ".\win7\" -Force
           Move-Item -Path ".\install.wim" -Destination ".\win7\sources\" -Force
 
@@ -96,7 +95,7 @@ jobs:
         run: |
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
-          .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=1 /NVMe /Optimize
+          .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=* /NVMe /Optimize
           
       - name: Step-7 Repack to ISO
         shell: pwsh
@@ -125,8 +124,9 @@ jobs:
           overwrite_files: true
           body: |
             ## Win7_x64_Ultimate_UpdatePack7R2_260115
+            - **最终产物**: Win7_x64_Ultimate_UpdatePack7R2_260115.iso
             - **原始母盘**: cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
-            - **集成工具**: UpdatePack7R2_26.1.15
+            - **集成工具**: UpdatePack7R2-26.1.15.exe [`https://blog.simplix.info/update7/`], SmartFix, DirectX, .NET Framework, Visual C++, autounattend.xml
             ---
             ### 📦 下载说明
             使用 7-Zip 进行分卷压缩（每卷 1650M）。
@@ -136,7 +136,7 @@ jobs:
             3. 使用 7-Zip 解压 `.7z.001` 即可获得完整的 ISO 文件。
             ---
           tag_name: ${{ env.FILE_NAME }}
-          name: ${{ env.ISO_LABEL }}_${{ env.UpdatePack7R2_VERSION }}
+          name: ${{ env.FINAL_ISO_NAME }}
           files: |
             ${{ env.ISO_LABEL }}.7z.*
             dism_export.log
