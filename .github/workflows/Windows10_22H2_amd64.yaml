@@ -15,9 +15,9 @@ jobs:
 
       - name: UUP DUMP Build ISO
         working-directory: ./Windows10_22H2_amd64
-        shell: pwsh
+        shell: cmd
         run: |
-          .\uup_download_windows.cmd
+          uup_download_windows.cmd
 
       - name: Split Archive
         working-directory: .

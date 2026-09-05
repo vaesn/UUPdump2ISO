@@ -19,9 +19,9 @@ jobs:
 
     - name: UUP dump WinISO
       working-directory: ./Windows11_25H2_amd64
-      shell: pwsh
+      shell: cmd
       run: |
-        .\uup_download_windows.cmd
+        uup_download_windows.cmd
 
     - name: Split Archive
       working-directory: .
