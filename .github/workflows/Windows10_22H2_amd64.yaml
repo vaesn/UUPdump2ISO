@@ -1,7 +1,6 @@
 name: Windows10_22H2_amd64
 on:
   workflow_dispatch:
-
 permissions:
   contents: write
 env:
@@ -18,7 +17,7 @@ jobs:
         working-directory: ./Windows10_22H2_amd64
         shell: pwsh
         run: |
-          uup_download_windows.cmd
+          .\uup_download_windows.cmd
 
       - name: Split Archive
         working-directory: .

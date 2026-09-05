@@ -6,7 +6,7 @@ permissions:
   contents: write
 
 env:
-  Build_VERSION: '26200.9267'
+  Build_VERSION: '26200.9278'
   FILE_NAME: Windows11_25H2_amd64
   
 jobs:
@@ -18,39 +18,17 @@ jobs:
       uses: actions/checkout@v5
 
     - name: UUP dump WinISO
-      shell: cmd
+      working-directory: ./Windows11_25H2_amd64
+      shell: pwsh
       run: |
-        cd ${{ env.FILE_NAME }}
-        echo =====Before 当前目录=====
-        cd
-        echo =====Before 当前目录下所有文件=====
-        dir
-        echo ============== Running ==============
-        
         .\uup_download_windows.cmd
-        
-        echo ============== Execution completed ==============
-        echo =====After 当前目录 =====
-        cd
-        echo =====After 当前目录下所有文件 =====
-        dir
 
-    - name: Compress with 7z
-      shell: cmd
+    - name: Split Archive
+      working-directory: .
+      shell: pwsh
       run: |
         7z a -t7z -v1750M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
         
-    - name: Execution completed
-      shell: pwsh
-      run: |
-        cd ${{env.FILE_NAME}}
-        #Rename-Item -Path "*.iso" -NewName "${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.iso"
-        Write-Host "-----当前目录-----"
-        pwd
-        Write-Host "-----当前目录下的文件-----"
-        ls
-        Get-ChildItem | Select-Object Name, @{Name='Size(MB)';Expression={[math]::Round($_.Length / 1MB, 2)}}
-
     - name: Delete Old Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,4 +50,3 @@ jobs:
         tag_name: ${{ env.FILE_NAME }}        
         name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
         files: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
-        
