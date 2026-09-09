@@ -50,4 +50,5 @@ jobs:
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{env.REVISION_NAME}}
           name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
-          files: *.7z*
+          files: |
+            *.7z*
