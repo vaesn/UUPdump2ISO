@@ -1,5 +1,5 @@
 name: WIN7amd64Ultimate_UpdatePack7R2
-on: workflow_dispatch
+'on': workflow_dispatch
 permissions:
   contents: write
 env:
@@ -72,14 +72,13 @@ jobs:
           chcp 65001
           dism /Get-ImageInfo /ImageFile:".\win7\sources\install.wim"
           dism /Export-Image /SourceImageFile:".\win7\sources\install.wim" /SourceIndex:4 /DestinationImageFile:".\install.wim" /Compress:fast /LogPath:".\dism_export.log" | Out-Null
-          
+
           Write-Host "DISM Export Finished..."
           Remove-Item -Path ".\win7\sources\install.wim" -Force
           dism /Get-ImageInfo /ImageFile:".\install.wim"
-          
+
           Move-Item -Path ".\autounattend.xml" -Destination ".\win7\" -Force
           Move-Item -Path ".\install.wim" -Destination ".\win7\sources\" -Force
-
       - name: Step-6 Integrate Updates By UpdatePack7R2
         shell: cmd
         working-directory: ./addons
@@ -87,13 +86,11 @@ jobs:
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
           .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=* /NVMe /Optimize
-          
       - name: Step-7 Repack to ISO
         shell: pwsh
         working-directory: .
         run: |
           .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\$env:FINAL_ISO_NAME.iso -lWIN7amd64Ultimate_UpdatePack7R2
-
       - name: Step-8 Split Archive
         shell: pwsh
         working-directory: .
@@ -107,7 +104,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release delete ${{env.TAG_NAME}} --cleanup-tag -y || true
-        
       - name: Step-10 Build New Release
         uses: softprops/action-gh-release@v3
         with:

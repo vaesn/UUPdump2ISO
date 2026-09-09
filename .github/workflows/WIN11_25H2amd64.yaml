@@ -1,53 +1,53 @@
 name: Windows11_25H2amd64
-on: workflow_dispatch
+'on': workflow_dispatch
 permissions:
   contents: write
 jobs:
   Windows11_25H2amd64:
     runs-on: windows-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
-    - name: Build ISO from UUP dump package
-      working-directory: ./WIN11_25H2amd64
-      shell: cmd
-      run: |
-        uup_download_windows.cmd
-    - name: Split Archive
-      working-directory: .
-      shell: pwsh
-      run: |
-        $file = Get-ChildItem -Path .\WIN11_25H2amd64 -Filter "*.iso" -File | Select-Object -First 1
-        $fileNameOnly = $file.Name
-        $fullPath = $file.FullName
-        $version = $fileNameOnly.Split('-')[0]
-        Add-Content -Path $env:GITHUB_ENV -Value "OUT_NAME=$fileNameOnly"
-        Add-Content -Path $env:GITHUB_ENV -Value "OUT_PATH=$fullPath"
-        Add-Content -Path $env:GITHUB_ENV -Value "OUT_REVISION=$version"
-        Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=WIN11_25H2amd64"
-        Write-Host "完整文件名: ${{ env.OUT_NAME }}"
-        Write-Host "完整路径: ${{ env.OUT_PATH }}"
-        Write-Host "VERSION: ${{ env.OUT_REVISION }}"
-        Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
-        7z a -t7z -v1750M -mx=0 ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}.7z .\WIN11_25H2amd64\*.iso
-    - name: Delete Old Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: bash
-      run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
-    - name: Build New Release
-      uses: softprops/action-gh-release@v3
-      with:
-        overwrite_files: true
-        fail_on_unmatched_files: true
-        body: |
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Build ISO from UUP dump package
+        working-directory: ./WIN11_25H2amd64
+        shell: cmd
+        run: |
+          uup_download_windows.cmd
+      - name: Split Archive
+        working-directory: .
+        shell: pwsh
+        run: |
+          $file = Get-ChildItem -Path .\WIN11_25H2amd64 -Filter "*.iso" -File | Select-Object -First 1
+          $fileNameOnly = $file.Name
+          $fullPath = $file.FullName
+          $version = $fileNameOnly.Split('-')[0]
+          Add-Content -Path $env:GITHUB_ENV -Value "OUT_NAME=$fileNameOnly"
+          Add-Content -Path $env:GITHUB_ENV -Value "OUT_PATH=$fullPath"
+          Add-Content -Path $env:GITHUB_ENV -Value "OUT_REVISION=$version"
+          Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=WIN11_25H2amd64"
+          Write-Host "完整文件名: ${{ env.OUT_NAME }}"
+          Write-Host "完整路径: ${{ env.OUT_PATH }}"
+          Write-Host "VERSION: ${{ env.OUT_REVISION }}"
+          Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
+          7z a -t7z -v1750M -mx=0 ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}.7z .\${{ env.REVISION_NAME }}\*.iso
+      - name: Delete Old Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
+      - name: Build New Release
+        uses: softprops/action-gh-release@v3
+        with:
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          body: |
             ## 🚀 Automated Release
             - **Product**: ${{ env.FINAL_ARTIFACT_NAME }}
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
-        tag_name: ${{ env.REVISION_NAME }}        
-        name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
-        files: |
-          *.7z*
+          tag_name: ${{ env.REVISION_NAME }}
+          name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
+          files: |
+            *.7z.*

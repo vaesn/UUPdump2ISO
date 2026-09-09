@@ -1,5 +1,5 @@
 name: WIN10_22H2amd64
-on: workflow_dispatch
+'on': workflow_dispatch
 permissions:
   contents: write
 jobs:
@@ -29,8 +29,8 @@ jobs:
           Write-Host "完整路径: ${{ env.OUT_PATH }}"
           Write-Host "VERSION: ${{ env.OUT_REVISION }}"
           Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
-          
-          7z a -t7z -v1820M -mx=0 ${{ env.REVISION_NAME }}-${{ env.REVISION }}.7z .\${{ env.REVISION_NAME }}\*.iso
+
+          7z a -t7z -v1820M -mx=0 ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}.7z .\${{ env.REVISION_NAME }}\*.iso
       - name: Delete Old Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,4 +51,4 @@ jobs:
           tag_name: ${{env.REVISION_NAME}}
           name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
           files: |
-            *.7z*
+            *.7z.*
