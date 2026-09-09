@@ -1,5 +1,5 @@
 name: WIN10_22H2amd64
-'on': workflow_dispatch
+on: workflow_dispatch
 permissions:
   contents: write
 jobs:
@@ -21,16 +21,19 @@ jobs:
           $fileNameOnly = $file.Name
           $fullPath = $file.FullName
           $version = $fileNameOnly.Split('-')[0]
+          $revisionName = "WIN10_22H2amd64"
           Add-Content -Path $env:GITHUB_ENV -Value "OUT_NAME=$fileNameOnly"
           Add-Content -Path $env:GITHUB_ENV -Value "OUT_PATH=$fullPath"
           Add-Content -Path $env:GITHUB_ENV -Value "OUT_REVISION=$version"
-          Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=WIN10_22H2amd64"
-          Write-Host "完整文件名: ${{ env.OUT_NAME }}"
-          Write-Host "完整路径: ${{ env.OUT_PATH }}"
-          Write-Host "VERSION: ${{ env.OUT_REVISION }}"
-          Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
-
-          7z a -t7z -v1820M -mx=0 ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}.7z .\${{ env.REVISION_NAME }}\*.iso
+          Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=$revisionName"
+          Write-Host "完整文件名: $fileNameOnly"
+          Write-Host "完整路径: $fullPath"
+          Write-Host "OUT_REVISION: $version"
+          Write-Host "REVISION_NAME: $revisionName"
+          $outputZipFileName = "${revisionName}-${version}.7z"
+          7z a -t7z -v1820M -mx=0 ".\$outputZipFileName" ".\WIN10_22H2amd64\*.iso"
+          Write-Host "Generated archive: .\$outputZipFileName"
+          Write-Host "Split Archive Done..."
       - name: Delete Old Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
