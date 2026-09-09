@@ -100,7 +100,7 @@ jobs:
         shell: pwsh
         working-directory: .
         run: |
-          7z a -t7z -v1650M -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
+          7z a -t7z -v1230M -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
           Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force
           Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force
               
