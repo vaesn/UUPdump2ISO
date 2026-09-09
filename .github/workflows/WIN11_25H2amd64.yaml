@@ -1,18 +1,15 @@
-name: Windows11_25H2_amd64
+name: Windows11_25H2amd64
 on: workflow_dispatch
 permissions:
   contents: write
-env:
-  REVISION: '26200.9445'
-  UUP_DIR: Windows11_25H2_amd64
 jobs:
-  Windows11_25H2_amd64:
+  Windows11_25H2amd64:
     runs-on: windows-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
     - name: Build ISO from UUP dump package
-      working-directory: ./Windows11_25H2_amd64
+      working-directory: ./WIN11_25H2amd64
       shell: cmd
       run: |
         uup_download_windows.cmd
@@ -20,19 +17,24 @@ jobs:
       working-directory: .
       shell: pwsh
       run: |
-        $file = Get-ChildItem -Path .\${{ env.UUP_DIR }} -Filter "*.iso" -File | Select-Object -First 1
-        $fileNameOnly =$file.Name
-        $fullPath =$file.FullName
-        Add-Content -Path $env:GITHUB_ENV -Value "FINAL_ARTIFACT_NAME=$fileNameOnly"
-        Add-Content -Path $env:GITHUB_ENV -Value "FINAL_ARTIFACT_PATH=$fullPath"
-        Write-Host "捕获到的文件名: $fileNameOnly"
-        Write-Host "完整路径: $fullPath"
-        7z a -t7z -v1750M -mx=0 ${{ env.UUP_DIR }}_${{ env.UUP_DIR }}.7z .\${{ env.UUP_DIR }}\*.iso
+        $file = Get-ChildItem -Path .\WIN11_25H2amd64 -Filter "*.iso" -File | Select-Object -First 1
+        $fileNameOnly = $file.Name
+        $fullPath = $file.FullName
+        $version = $fileNameOnly.Split('-')[0]
+        Add-Content -Path $env:GITHUB_ENV -Value "OUT_NAME=$fileNameOnly"
+        Add-Content -Path $env:GITHUB_ENV -Value "OUT_PATH=$fullPath"
+        Add-Content -Path $env:GITHUB_ENV -Value "OUT_REVISION=$version"
+        Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=WIN11_25H2amd64"
+        Write-Host "完整文件名: ${{ env.OUT_NAME }}"
+        Write-Host "完整路径: ${{ env.OUT_PATH }}"
+        Write-Host "VERSION: ${{ env.OUT_REVISION }}"
+        Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
+        7z a -t7z -v1750M -mx=0 ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}.7z .\WIN11_25H2amd64\*.iso
     - name: Delete Old Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
-      run: gh release delete ${{env.FILE_NAME}} --cleanup-tag -y || true
+      run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
     - name: Build New Release
       uses: softprops/action-gh-release@v3
       with:
@@ -45,6 +47,6 @@ jobs:
             - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
-        tag_name: ${{ env.UUP_DIR }}        
-        name: ${{ env.UUP_DIR }}_${{ env.REVISION }}
-        files: ${{ env.UUP_DIR }}_${{ env.REVISION }}.7z*
+        tag_name: ${{ env.REVISION_NAME }}        
+        name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
+        files: *.7z*

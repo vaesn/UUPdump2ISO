@@ -21,13 +21,13 @@ jobs:
           $fileNameOnly = $file.Name
           $fullPath = $file.FullName
           $version = $fileNameOnly.Split('-')[0]
-          Add-Content -Path $env:GITHUB_ENV -Value "ARTIFACT_NAME=$fileNameOnly"
-          Add-Content -Path $env:GITHUB_ENV -Value "ARTIFACT_PATH=$fullPath"
-          Add-Content -Path $env:GITHUB_ENV -Value "ARTIFACT_REVISION=$version"
+          Add-Content -Path $env:GITHUB_ENV -Value "OUT_NAME=$fileNameOnly"
+          Add-Content -Path $env:GITHUB_ENV -Value "OUT_PATH=$fullPath"
+          Add-Content -Path $env:GITHUB_ENV -Value "OUT_REVISION=$version"
           Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=WIN10_22H2amd64"
-          Write-Host "完整文件名: ${{ env.ARTIFACT_NAME }}"
-          Write-Host "完整路径: ${{ env.ARTIFACT_PATH }}"
-          Write-Host "VERSION: ${{ env.ARTIFACT_REVISION }}"
+          Write-Host "完整文件名: ${{ env.OUT_NAME }}"
+          Write-Host "完整路径: ${{ env.OUT_PATH }}"
+          Write-Host "VERSION: ${{ env.OUT_REVISION }}"
           Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
           
           7z a -t7z -v1820M -mx=0 ${{ env.REVISION_NAME }}-${{ env.REVISION }}.7z .\${{ env.REVISION_NAME }}\*.iso
@@ -43,11 +43,11 @@ jobs:
           overwrite_files: true
           body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.ARTIFACT_NAME }}
-            - **Version**: ${{ env.ARTIFACT_REVISION }}
+            - **Product**: ${{ env.OUT_NAME }}
+            - **Version**: ${{ env.OUT_REVISION }}
             - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{env.REVISION_NAME}}
-          name: ${{ env.REVISION_NAME }}-${{ env.REVISION }}
+          name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
           files: *.7z*
