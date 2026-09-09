@@ -7,7 +7,7 @@ env:
   Build_VERSION: '19045.7725'
   UUP_DIR: Windows10_22H2_amd64
 jobs:
-  Windows10_22H2_amd64_Cumulative_Update:
+  Windows10_22H2_amd64_Feature_Update:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
