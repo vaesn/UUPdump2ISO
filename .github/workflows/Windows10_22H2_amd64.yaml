@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: UUP DUMP Build ISO
+      - name: Build ISO from UUP dump package
         working-directory: ./Windows10_22H2_amd64
         shell: cmd
         run: |
@@ -38,7 +38,7 @@ jobs:
           overwrite_files: true
           body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.UUP_DIR }}_Cumulative_Update_PRO
+            - **Product**: ${{ env.UUP_DIR }}_Feature_Update_PRO
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
             ---

@@ -17,7 +17,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v5
 
-    - name: UUP dump WinISO
+    - name: Build ISO from UUP dump package
       working-directory: ./Windows11_25H2_amd64
       shell: cmd
       run: |
