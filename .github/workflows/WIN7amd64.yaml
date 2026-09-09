@@ -28,9 +28,11 @@ jobs:
           curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
           curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
           # dotNetFx48
+          # gh release download --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
           curl -L -o dotNetFx48_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
           curl -L -o dotNetFx48_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
           # dotNetFx48LP
+          # gh release download 19.04.13 --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
           curl -L -o dotNetFx48LP_x64_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x64_CHS.WA
           curl -L -o dotNetFx48LP_x86_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x86_CHS.WA 
           # vcredist [https://gitlab.com/stdout12/adns/-/releases] 
@@ -51,14 +53,17 @@ jobs:
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
       - name: Step-4 Get ISO Files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         working-directory: ./src
         run: |
+          gh release download win7src --repo ${{ github.repository }} --pattern "*677408.7z.*" --pattern "autounattend.xml" --dir ./
+          #https://github.com/[用户名]/[仓库名]/releases/download/[Tag名]/[文件名]
           # cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
-          curl -L -o autounattend.xml https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/autounattend.xml
-          curl -L -o win7src.7z.001 https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.001
-          curl -L -o win7src.7z.002 https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.7z.002
-          7z x win7src.7z.001 -y
+          Write-Host "下载完成，文件列表："
+          Get-ChildItem -Recurse
+          7z x *.7z.001 -y
           Start-Sleep -Seconds 6
           Rename-Item -Path "*.iso" -NewName "win7.iso"
           Remove-Item -Path "*.7z.*" -Force
