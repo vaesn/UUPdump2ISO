@@ -3,7 +3,7 @@ name: WIN10_22H2amd64
 permissions:
   contents: write
 jobs:
-  WIN10_22H2amd64_Feature_Update:
+  WIN10_22H2amd64_FeatureUpdate:
     runs-on: windows-latest
     steps:
       - name: Checkout repository

@@ -1,9 +1,9 @@
-name: Windows11_25H2amd64
+name: WIN11_25H2amd64
 'on': workflow_dispatch
 permissions:
   contents: write
 jobs:
-  Windows11_25H2amd64:
+  WIN11_25H2amd64:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
