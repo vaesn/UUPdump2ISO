@@ -1,2 +1,10 @@
 # UUPdump2ISO
-Automated Windows 10/11 ISO Builder based on UUP dump
+
+## Usage
+Use UUP DUMP to automatically build the latest version of Windows 10/11.
+
+ChangeWindows
+  https://changewindows.org/platforms/pc
+
+UUP DUMP
+  https://uupdump.net/

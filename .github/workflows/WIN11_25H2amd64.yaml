@@ -1,40 +1,38 @@
 name: Windows11_25H2_amd64
-
 on: workflow_dispatch
-
 permissions:
   contents: write
-
 env:
-  Build_VERSION: '26200.9445'
-  FILE_NAME: Windows11_25H2_amd64
-  
+  REVISION: '26200.9445'
+  UUP_DIR: Windows11_25H2_amd64
 jobs:
   Windows11_25H2_amd64:
     runs-on: windows-latest
     steps:
-
     - name: Checkout repository
       uses: actions/checkout@v5
-
     - name: Build ISO from UUP dump package
       working-directory: ./Windows11_25H2_amd64
       shell: cmd
       run: |
         uup_download_windows.cmd
-
     - name: Split Archive
       working-directory: .
       shell: pwsh
       run: |
-        7z a -t7z -v1750M -mx=0 ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z .\${{ env.FILE_NAME }}\*.iso
-        
+        $file = Get-ChildItem -Path .\${{ env.UUP_DIR }} -Filter "*.iso" -File | Select-Object -First 1
+        $fileNameOnly =$file.Name
+        $fullPath =$file.FullName
+        Add-Content -Path $env:GITHUB_ENV -Value "FINAL_ARTIFACT_NAME=$fileNameOnly"
+        Add-Content -Path $env:GITHUB_ENV -Value "FINAL_ARTIFACT_PATH=$fullPath"
+        Write-Host "捕获到的文件名: $fileNameOnly"
+        Write-Host "完整路径: $fullPath"
+        7z a -t7z -v1750M -mx=0 ${{ env.UUP_DIR }}_${{ env.UUP_DIR }}.7z .\${{ env.UUP_DIR }}\*.iso
     - name: Delete Old Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
       run: gh release delete ${{env.FILE_NAME}} --cleanup-tag -y || true
-
     - name: Build New Release
       uses: softprops/action-gh-release@v3
       with:
@@ -42,11 +40,11 @@ jobs:
         fail_on_unmatched_files: true
         body: |
             ## 🚀 Automated Release
-            - **Product**: ${{ env.FILE_NAME }}_PRO
+            - **Product**: ${{ env.FINAL_ARTIFACT_NAME }}
             - **Version**: ${{ env.Build_VERSION }}
             - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
-        tag_name: ${{ env.FILE_NAME }}        
-        name: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}
-        files: ${{ env.FILE_NAME }}_${{ env.Build_VERSION }}.7z*
+        tag_name: ${{ env.UUP_DIR }}        
+        name: ${{ env.UUP_DIR }}_${{ env.REVISION }}
+        files: ${{ env.UUP_DIR }}_${{ env.REVISION }}.7z*

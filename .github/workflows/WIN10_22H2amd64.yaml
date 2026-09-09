@@ -1,0 +1,53 @@
+name: WIN10_22H2amd64
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  WIN10_22H2amd64_Feature_Update:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Build ISO from UUP dump package
+        working-directory: ./WIN10_22H2amd64
+        shell: cmd
+        run: |
+          uup_download_windows.cmd
+      - name: Split Archive
+        working-directory: .
+        shell: pwsh
+        run: |
+          $file = Get-ChildItem -Path .\WIN10_22H2amd64 -Filter "*.iso" -File | Select-Object -First 1
+          $fileNameOnly = $file.Name
+          $fullPath = $file.FullName
+          $version = $fileNameOnly.Split('-')[0]
+          Add-Content -Path $env:GITHUB_ENV -Value "ARTIFACT_NAME=$fileNameOnly"
+          Add-Content -Path $env:GITHUB_ENV -Value "ARTIFACT_PATH=$fullPath"
+          Add-Content -Path $env:GITHUB_ENV -Value "ARTIFACT_REVISION=$version"
+          Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=WIN10_22H2amd64"
+          Write-Host "完整文件名: ${{ env.ARTIFACT_NAME }}"
+          Write-Host "完整路径: ${{ env.ARTIFACT_PATH }}"
+          Write-Host "VERSION: ${{ env.ARTIFACT_REVISION }}"
+          Write-Host "REVISION_NAME: ${{ env.REVISION_NAME }}"
+          
+          7z a -t7z -v1820M -mx=0 ${{ env.REVISION_NAME }}-${{ env.REVISION }}.7z .\${{ env.REVISION_NAME }}\*.iso
+      - name: Delete Old Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
+      - name: Build New Release
+        uses: softprops/action-gh-release@v3
+        with:
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          body: |
+            ## 🚀 Automated Release
+            - **Product**: ${{ env.ARTIFACT_NAME }}
+            - **Version**: ${{ env.ARTIFACT_REVISION }}
+            - **Language**: ZH_CN
+            ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
+          tag_name: ${{env.REVISION_NAME}}
+          name: ${{ env.REVISION_NAME }}-${{ env.REVISION }}
+          files: *.7z*
