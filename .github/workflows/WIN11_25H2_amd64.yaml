@@ -24,9 +24,17 @@ jobs:
           $newName = "$($iso.BaseName)_$hash8.iso"
           $newPath = Join-Path -Path $iso.DirectoryName -ChildPath $newName
           Rename-Item -Path $iso.FullName -NewName $newName -Force
+          
           $revisionName = "WIN11_25H2_amd64"
           $isoBaseName = $iso.BaseName
           $revision = $isoBaseName.Split('-')[0]
+          
+          $sizeInBytes =$iso.Length
+          $sizeInMB =$sizeInBytes / 1MB
+          $sizeInGB =$sizeInBytes / 1GB
+          
+          echo "ISO_SIZEMB=$("{0:N2}" -f$sizeInMB) MB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "ISO_SIZEGB=$("{0:N2}" -f$sizeInGB) GB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           
           echo "ISO_NAME=$newName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "ISO_PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -35,6 +43,8 @@ jobs:
           echo "SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           Write-Host "文件名: $newName"
+          Write-Host "大小 (MB): $("{0:N2}" -f$sizeInMB) MB"
+          Write-Host "大小 (GB): $("{0:N2}" -f$sizeInGB) GB"
           Write-Host "文件路径: $newPath"
           Write-Host "版本: $revision"
           Write-Host "SHA256: $hash"
@@ -60,6 +70,7 @@ jobs:
             - **Version**: ${{ env.ISO_REVISION }}_Pro,Education,Enterprise
             - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
+            - **SIZE**: ${{ env.ISO_SIZEMB }} 、 ${{ env.ISO_SIZEGB }}
             - **使用 `https://gh-proxy.com/` 加速下载**
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
