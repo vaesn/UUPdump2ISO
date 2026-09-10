@@ -66,4 +66,4 @@ jobs:
           tag_name: ${{env.REVISION_NAME}}
           name: ${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}
           files: |
-            *.7z.*
+            ${{ REVISION_NAME }}-${{ ISO_REVISION }}.7z.*
