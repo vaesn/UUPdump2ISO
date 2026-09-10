@@ -57,7 +57,7 @@ jobs:
           body: |
             ## Windows11_25H2_amd64_${{ env.ISO_REVISION }}
             - **Product**: ${{ env.ISO_NAME }}
-            - **Version**: ${{ env.ISO_REVISION }}
+            - **Version**: ${{ env.ISO_REVISION }}_Pro,Education,Enterprise
             - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
             - **使用 `https://gh-proxy.com/` 加速下载**
