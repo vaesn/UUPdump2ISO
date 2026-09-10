@@ -24,8 +24,8 @@ jobs:
           $newPath = Join-Path -Path $iso.DirectoryName -ChildPath $newName
           Rename-Item -Path $iso.FullName -NewName $newName -Force
           $revisionName = "WIN11_25H2amd64"
-          #$isoBaseName = $iso.BaseName
-          $revision = $$iso.BaseName.Split('-')[0]
+          $isoBaseName = $iso.BaseName
+          $revision = $isoBaseName.Split('-')[0]
           
           echo "ISO_NAME=$newName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "ISO_PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
