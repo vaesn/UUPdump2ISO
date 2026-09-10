@@ -3,38 +3,48 @@ name: WIN10_22H2amd64
 permissions:
   contents: write
 jobs:
-  WIN10_22H2amd64_FeatureUpdate:
+  WIN10_22H2amd64:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
       - name: Build ISO from UUP dump package
-        working-directory: ./WIN10_22H2amd64
+        working-directory: .\WIN10_22H2amd64
         shell: cmd
         run: |
           uup_download_windows.cmd
+          
       - name: Split Archive
         working-directory: .
         shell: pwsh
         run: |
-          $file = Get-ChildItem -Path .\WIN10_22H2amd64 -Filter "*.iso" -File | Select-Object -First 1
-          $fileNameOnly = $file.Name
-          $fullPath = $file.FullName
-          $version = $fileNameOnly.Split('-')[0]
+          $iso = Get-ChildItem -Path ".\WIN10_22H2amd64" -Filter "*.iso" -File | Select-Object -First 1
+          $hash = (Get-FileHash -Path $iso.FullName -Algorithm SHA256).Hash.ToLower()
+          $hash8 = $hash.Substring($hash.Length - 8)
+          $newName = "$($iso.BaseName)_$hash8.iso"
+          $newPath = Join-Path -Path $iso.DirectoryName -ChildPath $newName
+          Rename-Item -Path $iso.FullName -NewName $newName -Force
           $revisionName = "WIN10_22H2amd64"
-          Add-Content -Path $env:GITHUB_ENV -Value "OUT_NAME=$fileNameOnly"
-          Add-Content -Path $env:GITHUB_ENV -Value "OUT_PATH=$fullPath"
-          Add-Content -Path $env:GITHUB_ENV -Value "OUT_REVISION=$version"
-          Add-Content -Path $env:GITHUB_ENV -Value "REVISION_NAME=$revisionName"
-          Write-Host "完整文件名: $fileNameOnly"
-          Write-Host "完整路径: $fullPath"
-          Write-Host "OUT_REVISION: $version"
-          Write-Host "REVISION_NAME: $revisionName"
-          $outputZipFileName = "${revisionName}-${version}.7z"
-          #-v1820M
+          #$isoBaseName = $iso.BaseName
+          $revision = $$iso.BaseName.Split('-')[0]
+          
+          echo "ISO_NAME=$newName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "ISO_PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "ISO_REVISION=$revision" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "REVISION_NAME=$revisionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          Write-Host "文件名: $newName"
+          Write-Host "文件路径: $newPath"
+          Write-Host "版本: $revision"
+          Write-Host "SHA256: $hash"
+          
+          $outputZipFileName = "${revisionName}-${revision}.7z"
+          # -v1820M
           7z a -t7z -v1280M -mx=0 ".\$outputZipFileName" ".\WIN10_22H2amd64\*.iso"
           Write-Host "Generated archive: .\$outputZipFileName"
           Write-Host "Split Archive Done..."
+          
       - name: Delete Old Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,13 +56,14 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: true
           body: |
-            ## 🚀 Automated Release
-            - **Product**: ${{ env.OUT_NAME }}
-            - **Version**: ${{ env.OUT_REVISION }}
+            ## WIN10_22H2_amd64_Feature_Update_${{ env.ISO_REVISION }}
+            - **Product**: ${{ env.ISO_NAME }}
+            - **Version**: ${{ env.ISO_REVISION }}
+            - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{env.REVISION_NAME}}
-          name: ${{ env.REVISION_NAME }}-${{ env.OUT_REVISION }}
+          name: ${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}
           files: |
             *.7z.*
