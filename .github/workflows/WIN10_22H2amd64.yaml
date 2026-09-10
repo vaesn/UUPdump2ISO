@@ -18,6 +18,7 @@ jobs:
         working-directory: .
         shell: pwsh
         run: |
+          mkdir -Force dist_win10
           $iso = Get-ChildItem -Path ".\WIN10_22H2amd64" -Filter "*.iso" -File | Select-Object -First 1
           $hash = (Get-FileHash -Path $iso.FullName -Algorithm SHA256).Hash.ToLower()
           $hash8 = $hash.Substring($hash.Length - 8)
@@ -41,7 +42,7 @@ jobs:
           
           $outputZipFileName = "${revisionName}-${revision}.7z"
           # -v1820M
-          7z a -t7z -v1280M -mx=0 ".\$outputZipFileName" ".\WIN10_22H2amd64\*.iso"
+          7z a -t7z -v1280M -mx=0 ".\dist_win10\$outputZipFileName" ".\WIN10_22H2amd64\*.iso"
           Write-Host "Generated archive: .\$outputZipFileName"
           Write-Host "Split Archive Done..."
           
@@ -66,4 +67,4 @@ jobs:
           tag_name: ${{env.REVISION_NAME}}
           name: ${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}
           files: |
-            ${{ REVISION_NAME }}-${{ ISO_REVISION }}.7z.*
+            .\dist_win10\${{ REVISION_NAME }}-${{ ISO_REVISION }}.7z.*
