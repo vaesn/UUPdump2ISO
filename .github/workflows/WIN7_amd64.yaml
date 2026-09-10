@@ -1,13 +1,13 @@
-name: WIN7amd64Ultimate_UpdatePack7R2
+name: WIN7_amd64_Ultimate_UpdatePack7R2
 'on': workflow_dispatch
 permissions:
   contents: write
 env:
   TAG_NAME: WIN7amd64
   BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
-  FINAL_ISO_NAME: WIN7amd64Ultimate_UpdatePack7R2_260115
+  FINAL_ISO_NAME: WIN7_amd64_Ultimate_UpdatePack7R2_260115
 jobs:
-  WIN7amd64Ultimate_UpdatePack7R2:
+  WIN7_amd64_Ultimate_UpdatePack7R2:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -115,17 +115,18 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: true
           body: |
-            ## Win7_amd64_Ultimate_UpdatePack7R2_260115
+            ## Windows7_amd64_Ultimate_UpdatePack7R2_260115
             - **最终产物**: Win7_amd64_Ultimate_UpdatePack7R2_260115.iso
             - **原始母盘**: cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
             - **集成工具**: UpdatePack7R2-26.1.15.exe, SmartFix, DirectX, .NET Framework, Visual C++, autounattend.xml
             ---
             ### 📦 下载说明
-            使用 7-Zip 进行分卷压缩（每卷 1650M）。
+            使用 7-Zip 进行分卷压缩（每卷 1230M）。
             **下载方式**:
             1. 下载所有 `.7z.001`, `.7z.002`, ... 等后缀的文件。
             2. 确保所有文件位于同一文件夹。
             3. 使用 7-Zip 解压 `.7z.001` 即可获得完整的 ISO 文件。
+            4. 使用 `https://gh-proxy.com/` 加速下载
             ---
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ env.FINAL_ISO_NAME }}

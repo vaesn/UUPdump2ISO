@@ -1,15 +1,18 @@
-name: WIN11_25H2amd64
-'on': workflow_dispatch
+name: WIN11_25H2_amd64
+on:
+  workflow_dispatch
+  schedule:
+    - cron: '0 18 14 * *'
 permissions:
   contents: write
 jobs:
-  WIN11_25H2amd64:
+  WIN11_25H2_amd64:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
       - name: Build ISO from UUP dump package
-        working-directory: .\WIN11_25H2amd64
+        working-directory: .\WIN11_25H2_amd64
         shell: cmd
         run: |
           uup_download_windows.cmd
@@ -18,13 +21,13 @@ jobs:
         shell: pwsh
         run: |
           mkdir -Force dist_win11
-          $iso = Get-ChildItem -Path ".\WIN11_25H2amd64" -Filter "*.iso" -File | Select-Object -First 1
+          $iso = Get-ChildItem -Path ".\WIN11_25H2_amd64" -Filter "*.iso" -File | Select-Object -First 1
           $hash = (Get-FileHash -Path $iso.FullName -Algorithm SHA256).Hash.ToLower()
           $hash8 = $hash.Substring($hash.Length - 8)
           $newName = "$($iso.BaseName)_$hash8.iso"
           $newPath = Join-Path -Path $iso.DirectoryName -ChildPath $newName
           Rename-Item -Path $iso.FullName -NewName $newName -Force
-          $revisionName = "WIN11_25H2amd64"
+          $revisionName = "WIN11_25H2_amd64"
           $isoBaseName = $iso.BaseName
           $revision = $isoBaseName.Split('-')[0]
           
@@ -55,11 +58,12 @@ jobs:
           overwrite_files: true
           fail_on_unmatched_files: true
           body: |
-            ## WIN11_25H2_amd64_${{ env.ISO_REVISION }}
+            ## Windows11_25H2_amd64_${{ env.ISO_REVISION }}
             - **Product**: ${{ env.ISO_NAME }}
             - **Version**: ${{ env.ISO_REVISION }}
             - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
+            - **使用 `https://gh-proxy.com/` 加速下载**
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{ env.REVISION_NAME }}
