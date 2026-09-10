@@ -1,8 +1,5 @@
 name: WIN10_22H2_amd64
-on:
-  workflow_dispatch
-  schedule:
-    - cron: '0 19 14 * *'
+on: workflow_dispatch
 permissions:
   contents: write
 jobs:

@@ -1,5 +1,5 @@
 name: WIN7_amd64_Ultimate_UpdatePack7R2
-'on': workflow_dispatch
+on: workflow_dispatch
 permissions:
   contents: write
 env:
