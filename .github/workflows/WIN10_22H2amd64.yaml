@@ -67,4 +67,4 @@ jobs:
           tag_name: ${{env.REVISION_NAME}}
           name: ${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}
           files: |
-            .\dist_win10\${{ REVISION_NAME }}-${{ ISO_REVISION }}.7z.*
+            .\dist_win10\${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}.7z.*
