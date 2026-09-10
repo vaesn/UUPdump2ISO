@@ -41,7 +41,7 @@ jobs:
           
           $outputZipFileName = "${revisionName}-${revision}.7z"
           # -v1820M
-          7z a -t7z -v1745M -mx=0 ".\dist_win11\$outputZipFileName" ".\WIN11_25H2amd64\*.iso"
+          7z a -t7z -v1745M -mx=0 ".\dist_win11\$outputZipFileName" ".\WIN11_25H2_amd64\*.iso"
           Write-Host "Generated archive: .\$outputZipFileName"
           Write-Host "Split Archive Done..."
       - name: Delete Old Release
