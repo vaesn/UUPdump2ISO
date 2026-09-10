@@ -57,7 +57,7 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: true
           body: |
-            ## Windows10_22H2_amd64_Feature_Update_${{ env.ISO_REVISION }}
+            ## Windows10_22H2_amd64_Feature_Update-${{ env.ISO_REVISION }}
             - **Product**: ${{ env.ISO_NAME }}
             - **Version**: ${{ env.ISO_REVISION }}_Pro,Education,Enterprise
             - **SHA256**: ${{ env.SHA256 }}
