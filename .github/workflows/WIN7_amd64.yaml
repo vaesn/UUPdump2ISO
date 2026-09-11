@@ -204,6 +204,6 @@ jobs:
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{ env.TAG_NAME }}
-          name: ${{ env.FINAL_ISO_NAME }}
+          name: WIN7_amd64_Ultimate_UpdatePack7R2_260115
           files: |
-            ${{ env.FINAL_ISO_NAME }}.7z.*
+            *.7z.*
