@@ -112,10 +112,11 @@ jobs:
         run: |
           $IsoFile = Get-ChildItem -Path ".\dist" -Filter "*.iso" -File | Select-Object -First 1
           $FullHash = (Get-FileHash -Path $IsoFile.FullName -Algorithm SHA256).Hash.ToLower()
+          $FileFullPath = $IsoFile.FullName
           $SizeInBytes =$IsoFile.Length
           $sizeInMB =$sizeInBytes / 1MB
           $sizeInGB =$sizeInBytes / 1GB
-          $VolumeSizeVal = [Math]::Ceiling($SizeInMB / 4) + 32
+          $VolumeSizeVal = [int][Math]::Ceiling($SizeInMB / 4) + 32
           $VolumeSizeArg = "${VolumeSizeVal}M"
           $EnvVars = @(
               "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
@@ -124,8 +125,34 @@ jobs:
               "SHA256=$FullHash"
           )
           $EnvVars | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
-          & 7z a -t7z -v$VolumeSizeArg -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
+          Write-Host "========================================" -ForegroundColor Cyan
+          Write-Host "  ISO Processing Information" -ForegroundColor Cyan
+          Write-Host "========================================" -ForegroundColor Cyan
+          @(
+              "大小 : {0:N2} MB" -f $SizeInMB
+              "大小 : {0:N2} GB" -f $SizeInGB
+              "路径 : $FileFullPath"
+              "SHA256: $FullHash"
+              "分卷参数: -v$VolumeSizeArg"
+          ) | ForEach-Object { Write-Host "  $_" }
+          Write-Host "========================================" -ForegroundColor Cyan
+          $Args7z = @(
+              "a",
+              "-t7z",
+              "-v${VolumeSizeArg}",
+              "-mx=0",
+              ".\WIN7_amd64_Ultimate_UpdatePack7R2_260115.7z", 
+              ".\dist\WIN7_amd64_Ultimate_UpdatePack7R2_260115.iso" 
+          )
+          Write-Host "Executing 7z with arguments: $Args7z"
+          # 7z a -t7z -v1536M -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
+          $process = Start-Process -FilePath "7z" -ArgumentList $Args7z -Wait -NoNewWindow -PassThru
+          if ($process.ExitCode -ne 0) {
+              Write-Error "7z failed with exit code $($process.ExitCode)"
+              exit $process.ExitCode
+          }
+          Write-Host "Split Archive Done..." -ForegroundColor Green
+          Get-ChildItem -Recurse
           Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force -ErrorAction SilentlyContinue
           Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force -ErrorAction SilentlyContinue
               

@@ -38,7 +38,7 @@ jobs:
           $SizeInBytes = $IsoFile.Length
           $SizeInMB = $SizeInBytes / 1MB
           $SizeInGB = $SizeInBytes / 1GB
-          $VolumeSizeVal = [Math]::Ceiling($SizeInMB / 4) + 32
+          $VolumeSizeVal = [int][Math]::Ceiling($SizeInMB / 4) + 32
           $VolumeSizeArg = "${VolumeSizeVal}M"
           $EnvVars = @(
               "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
@@ -66,10 +66,23 @@ jobs:
           Write-Host "========================================" -ForegroundColor Cyan
           $OutputZipFileName = "${RevisionName}-${Revision}.7z"
           $OutputZipPath = Join-Path -Path $DistDir -ChildPath $OutputZipFileName
-
-          & 7z a -t7z -v$VolumeSizeArg -mx=0 "$OutputZipPath" "$NewFilePath"
-
-          Write-Host "Generated archive: $OutputZipPath"
+          $Args7z = @(
+              "a",
+              "-t7z",
+              "-v${VolumeSizeArg}",
+              "-mx=0",
+              ('"{0}"' -f $OutputZipPath),
+              ('"{0}"' -f $NewFilePath)
+          )
+          Write-Host "Executing 7z with arguments: $Args7z"
+          # 7z a -t7z -v$VolumeSizeArg -mx=0 "$OutputZipPath" "$NewFilePath"
+          $process = Start-Process -FilePath "7z" -ArgumentList $Args7z -Wait -NoNewWindow -PassThru
+          if ($process.ExitCode -ne 0) {
+              Write-Error "7z failed with exit code $($process.ExitCode)"
+              exit $process.ExitCode
+          }
+          Write-Host "Generated archive: $OutputZipPath" -ForegroundColor Green
+          Get-ChildItem -Recurse
           Write-Host "Split Archive Done..." -ForegroundColor Green
           
       - name: Step-3 Delete Old Release
