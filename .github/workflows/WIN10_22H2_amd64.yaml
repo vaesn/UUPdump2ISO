@@ -18,47 +18,74 @@ jobs:
         working-directory: .
         shell: pwsh
         run: |
-          mkdir -Force dist_win10
-          $iso = Get-ChildItem -Path ".\WIN10_22H2_amd64" -Filter "*.iso" -File | Select-Object -First 1
-          $hash = (Get-FileHash -Path $iso.FullName -Algorithm SHA256).Hash.ToLower()
-          $hash8 = $hash.Substring($hash.Length - 8)
-          $newName = "$($iso.BaseName)_$hash8.iso"
-          $newPath = Join-Path -Path $iso.DirectoryName -ChildPath $newName
-          Rename-Item -Path $iso.FullName -NewName $newName -Force
-          $revisionName = "WIN10_22H2_amd64"
-          $isoBaseName = $iso.BaseName
-          $revision = $isoBaseName.Split('-')[0]
-          
-          $sizeInBytes =$iso.Length
-          $sizeInMB =$sizeInBytes / 1MB
-          $sizeInGB =$sizeInBytes / 1GB
-          
-          echo "ISO_SIZEMB=$("{0:N2}" -f$sizeInMB) MB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "ISO_SIZEGB=$("{0:N2}" -f$sizeInGB) GB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
-          
-          echo "ISO_NAME=$newName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "ISO_PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "ISO_REVISION=$revision" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "REVISION_NAME=$revisionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $SourceDir = "WIN10_22H2_amd64"
+          $DistDir = "dist_win10"
+          $RevisionName = "WIN10_22H2_amd64"
+          New-Item -Path $DistDir -ItemType Directory -Force | Out-Null
+          $IsoFile = Get-ChildItem -Path $SourceDir -Filter "*.iso" -File | Select-Object -First 1
+          $FullHash = (Get-FileHash -Path $IsoFile.FullName -Algorithm SHA256).Hash.ToLower()
+          $ShortHash = $FullHash.Substring($FullHash.Length - 8)
+          $NewFileName = "$($IsoFile.BaseName)_$ShortHash.iso"
+          $NewFilePath = Join-Path -Path $IsoFile.DirectoryName -ChildPath $NewFileName
+          Rename-Item -Path $IsoFile.FullName -NewName $NewFileName -Force
+          $Revision = $IsoFile.BaseName.Split('-')[0]
+          $SizeInBytes = $IsoFile.Length
+          $SizeInMB = $SizeInBytes / 1MB
+          $SizeInGB = $SizeInBytes / 1GB
+          $VolumeSizeVal = [Math]::Ceiling($SizeInMB / 4) + 32
+          $VolumeSizeArg = "${VolumeSizeVal}M"
+          $EnvVars = @(
+              "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
+              "ISO_SIZEGB={0:N2} GB" -f $SizeInGB
+              "7zSIZE=$VolumeSizeArg"
+              "ISO_NAME=$NewFileName"
+              "ISO_PATH=$NewFilePath"
+              "ISO_REVISION=$Revision"
+              "REVISION_NAME=$RevisionName"
+              "SHA256=$FullHash"
+          )
+          $EnvVars | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-          Write-Host "文件名: $newName"
-          Write-Host "文件路径: $newPath"
-          Write-Host "版本: $revision"
-          Write-Host "SHA256: $hash"
-          
-          $outputZipFileName = "${revisionName}-${revision}.7z"
-          # -v1820M
-          7z a -t7z -v1380M -mx=0 ".\dist_win10\$outputZipFileName" ".\WIN10_22H2_amd64\*.iso"
-          Write-Host "Generated archive: .\$outputZipFileName"
-          Write-Host "Split Archive Done..."
+          Write-Host "========================================" -ForegroundColor Cyan
+          Write-Host "  ISO Processing Information" -ForegroundColor Cyan
+          Write-Host "========================================" -ForegroundColor Cyan
+          @(
+              "文件名: $NewFileName"
+              "大小 : {0:N2} MB" -f $SizeInMB
+              "大小 : {0:N2} GB" -f $SizeInGB
+              "路径 : $NewFilePath"
+              "版本 : $Revision"
+              "SHA256: $FullHash"
+              "分卷参数: -v$VolumeSizeArg"
+          ) | ForEach-Object { Write-Host "  $_" }
+          Write-Host "========================================" -ForegroundColor Cyan
+          $OutputZipFileName = "${RevisionName}-${Revision}.7z"
+          $OutputZipPath = Join-Path -Path $DistDir -ChildPath $OutputZipFileName
+
+          & 7z a -t7z -v$VolumeSizeArg -mx=0 "$OutputZipPath" "$NewFilePath"
+
+          Write-Host "Generated archive: $OutputZipPath"
+          Write-Host "Split Archive Done..." -ForegroundColor Green
           
       - name: Delete Old Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
+      - name: Delete past completed runs of this workflow
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run list \
+            --workflow "${{ github.workflow }}" \
+            --json databaseId,status,conclusion \
+            --jq '.[] | select(.status == "completed") | .databaseId' \
+            | while read -r run_id; do
+                [ "$run_id" = "${{ github.run_id }}" ] && continue
+                gh run delete "$run_id"
+              done
+              
       - name: Build New Release
         uses: softprops/action-gh-release@v3
         with:
@@ -66,12 +93,20 @@ jobs:
           overwrite_files: true
           body: |
             ## Windows10_22H2_amd64_Feature_Update-${{ env.ISO_REVISION }}
-            - **Product**: ${{ env.ISO_NAME }}
-            - **Version**: ${{ env.ISO_REVISION }}_Pro,Education,Enterprise
+            - **ARTIFACT**: ${{ env.ISO_NAME }}
+            - **Version**: ${{ env.ISO_REVISION }}_Pro , virtual_editions: Education,Enterprise
             - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
-            - **SIZE**: ${{ env.ISO_SIZEMB }} 、 ${{ env.ISO_SIZEGB }}
-            - **使用 `https://gh-proxy.com/` 加速下载**
+            - **File Size**: ${{ env.ISO_SIZEMB }} ， ${{ env.ISO_SIZEGB }}
+            - **Volume Size**: ${{ env.7zSIZE }}
+            ---
+            ### 📦 下载说明
+            使用 7-Zip 进行分卷压缩（每卷 ${{ env.7zSIZE }}）。
+            **下载方式**:
+            1. 下载所有 `.7z.001`, `.7z.002`, ... 等后缀的文件。
+            2. 确保所有文件位于同一文件夹。
+            3. 使用 7-Zip 解压 `.7z.001` 即可获得完整的 ISO 文件。
+            4. 使用 `https://gh-proxy.com/` 加速下载
             ---
             > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{env.REVISION_NAME}}

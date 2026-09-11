@@ -20,30 +20,26 @@ jobs:
           mkdir -Force addons
           mkdir -Force utils
           mkdir -Force dist
+          
       - name: Step-2 Get Addons Files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         working-directory: ./addons
         run: |
-          # DirectX_June2010
-          curl -L -o DirectX_June2010_x64.WA http://komisar.gin.by/tools/u/DirectX_June2010_x64.WA
-          curl -L -o DirectX_June2010_x86.WA http://komisar.gin.by/tools/u/DirectX_June2010_x86.WA
+          # DirectX_June2010 [http://komisar.gin.by/tools/u/]
+          gh release download win7src --repo vaesn/UUPdump2ISO --pattern "DirectX*.WA" --dir ./
           # dotNetFx48
-          # gh release download --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
-          curl -L -o dotNetFx48_x64.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x64.WA
-          curl -L -o dotNetFx48_x86.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/26.08.11/dotNetFx48_20260811_x86.WA
+          gh release download latest --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
           # dotNetFx48LP
-          # gh release download 19.04.13 --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
-          curl -L -o dotNetFx48LP_x64_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x64_CHS.WA
-          curl -L -o dotNetFx48LP_x86_CHS.WA https://github.com/abbodi1406/dotNetFx4xW7A/releases/download/19.04.13/dotNetFx48LP_x86_CHS.WA 
+          gh release download 19.04.13 --repo abbodi1406/dotNetFx4xW7A --pattern "*CHS.WA" --dir ./
           # vcredist [https://gitlab.com/stdout12/adns/-/releases] 
           curl -L -o vcredist_x64_Win7.WA https://gitlab.com/-/project/11037551/uploads/8899c68cf5b5bfc7da7f04b73afa9f58/vcredist_x64_Win7_20250708.WA
           curl -L -o vcredist_x86_Win7.WA https://gitlab.com/-/project/11037551/uploads/49d56348397669befad302f58070ab2f/vcredist_x86_Win7_20250708_r.WA
-          # vcredist
-          curl -L -o vcredist_x64_2022_WinAll.WA https://gitlab.com/-/project/11037551/uploads/ce26d073600eb68db902bc12946d42e7/vcredist_x64_2022_WinAll_14.44.35211.WA
-          curl -L -o vcredist_x86_2022_WinAll.WA https://gitlab.com/-/project/11037551/uploads/16a7925f42634ef7232d7d9cc122034a/vcredist_x86_2022_WinAll_14.44.35211_r.WA
           # SmartFix
           curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
           curl -L -o UpdatePack7R2.exe https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/UpdatePack7R2-26.1.15.exe
+          
       - name: Step-3 Get Utiles
         shell: pwsh
         working-directory: ./utils
@@ -52,6 +48,7 @@ jobs:
           curl -L -o wimlib.zip https://wimlib.net/downloads/wimlib-1.14.5-windows-x86_64-bin.zip
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
+          
       - name: Step-4 Get ISO Files
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,31 +56,31 @@ jobs:
         working-directory: ./src
         run: |
           gh release download win7src --repo ${{ github.repository }} --pattern "*677408.7z.*" --pattern "autounattend.xml" --dir ./
-          #https://github.com/[用户名]/[仓库名]/releases/download/[Tag名]/[文件名]
-          # cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
           Write-Host "下载完成，文件列表："
           Get-ChildItem -Recurse
           7z x *.7z.001 -y
-          Start-Sleep -Seconds 6
+          Start-Sleep -Seconds 3
           Rename-Item -Path "*.iso" -NewName "win7.iso"
           Remove-Item -Path "*.7z.*" -Force
           7z x win7.iso -o"win7" -y
-          Start-Sleep -Seconds 6
+          Start-Sleep -Seconds 3
           Remove-Item -Path "*.iso" -Force
+          
       - name: Step-5 Extract Source ISO Ultimate Index=4
         working-directory: ./src
         shell: pwsh
         run: |
           chcp 65001
           dism /Get-ImageInfo /ImageFile:".\win7\sources\install.wim"
+          
           dism /Export-Image /SourceImageFile:".\win7\sources\install.wim" /SourceIndex:4 /DestinationImageFile:".\install.wim" /Compress:fast /LogPath:".\dism_export.log" | Out-Null
 
           Write-Host "DISM Export Finished..."
           Remove-Item -Path ".\win7\sources\install.wim" -Force
           dism /Get-ImageInfo /ImageFile:".\install.wim"
-
           Move-Item -Path ".\autounattend.xml" -Destination ".\win7\" -Force
           Move-Item -Path ".\install.wim" -Destination ".\win7\sources\" -Force
+          
       - name: Step-6 Integrate Updates By UpdatePack7R2
         shell: cmd
         working-directory: ./addons
@@ -91,27 +88,33 @@ jobs:
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
           .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=* /NVMe /Optimize
+          
       - name: Step-7 Repack to ISO
         shell: pwsh
         working-directory: .
         run: |
           .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\$env:FINAL_ISO_NAME.iso -lWIN7amd64Ultimate_UpdatePack7R2
+          
       - name: Step-8 Split Archive
         shell: pwsh
         working-directory: .
         run: |
-          $iso = Get-ChildItem -Path ".\dist" -Filter "*.iso" -File | Select-Object -First 1
-          $hash = (Get-FileHash -Path $iso.FullName -Algorithm SHA256).Hash.ToLower()
-          $sizeInBytes =$iso.Length
+          $IsoFile = Get-ChildItem -Path ".\dist" -Filter "*.iso" -File | Select-Object -First 1
+          $FullHash = (Get-FileHash -Path $IsoFile.FullName -Algorithm SHA256).Hash.ToLower()
+          $SizeInBytes =$IsoFile.Length
           $sizeInMB =$sizeInBytes / 1MB
           $sizeInGB =$sizeInBytes / 1GB
+          $VolumeSizeVal = [Math]::Ceiling($SizeInMB / 4) + 32
+          $VolumeSizeArg = "${VolumeSizeVal}M"
+          $EnvVars = @(
+              "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
+              "ISO_SIZEGB={0:N2} GB" -f $SizeInGB
+              "7zSIZE=$VolumeSizeArg"
+              "SHA256=$FullHash"
+          )
+          $EnvVars | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           
-          echo "ISO_SIZEMB=$("{0:N2}" -f$sizeInMB) MB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "ISO_SIZEGB=$("{0:N2}" -f$sizeInGB) GB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
-          7z a -t7z -v1230M -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
-          
+          & 7z a -t7z -v$VolumeSizeArg -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
           Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force
           Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force
               
@@ -120,27 +123,44 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release delete ${{env.TAG_NAME}} --cleanup-tag -y || true
-      - name: Step-10 Build New Release
+        
+      - name: Step-10 Delete past completed runs of this workflow
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run list \
+            --workflow "${{ github.workflow }}" \
+            --json databaseId,status,conclusion \
+            --jq '.[] | select(.status == "completed") | .databaseId' \
+            | while read -r run_id; do
+                [ "$run_id" = "${{ github.run_id }}" ] && continue
+                gh run delete "$run_id"
+              done
+              
+      - name: Step-11 Build New Release
         uses: softprops/action-gh-release@v3
         with:
           fail_on_unmatched_files: true
           overwrite_files: true
           body: |
             ## Windows7_amd64_Ultimate_UpdatePack7R2_260115
-            - **最终产物**: Win7_amd64_Ultimate_UpdatePack7R2_260115.iso
-            - **原始母盘**: cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
+            - **ARTIFACT**: Win7_amd64_Ultimate_UpdatePack7R2_260115.iso
+            - **ORIGINAL**: cn_windows_7_ultimate_with_sp1_x64_dvd_u_677408.iso
             - **SHA256**: ${{ env.SHA256 }}
-            - **SIZE**: ${{ env.ISO_SIZEMB }} 、 ${{ env.ISO_SIZEGB }}
-            - **集成工具**: UpdatePack7R2-26.1.15.exe, SmartFix, DirectX, .NET Framework, Visual C++, autounattend.xml
+            - **File Size**: ${{ env.ISO_SIZEMB }} 、 ${{ env.ISO_SIZEGB }}
+            - **Volume Size**: ${{ env.7zSIZE }}
+            - **Tools**: UpdatePack7R2-26.1.15.exe, SmartFix, DirectX, .NET Framework, Visual C++, autounattend.xml
             ---
             ### 📦 下载说明
-            使用 7-Zip 进行分卷压缩（每卷 1230M）。
+            使用 7-Zip 进行分卷压缩（每卷 ${{ env.7zSIZE }}）。
             **下载方式**:
             1. 下载所有 `.7z.001`, `.7z.002`, ... 等后缀的文件。
             2. 确保所有文件位于同一文件夹。
             3. 使用 7-Zip 解压 `.7z.001` 即可获得完整的 ISO 文件。
             4. 使用 `https://gh-proxy.com/` 加速下载
             ---
+            > ⚠️ **Note**: This is a multi-volume archive (.7z.001, .7z.002...). Please download all parts before extracting.
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ env.FINAL_ISO_NAME }}
           files: |
