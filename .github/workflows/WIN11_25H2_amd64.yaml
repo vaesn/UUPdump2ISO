@@ -13,13 +13,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-      - name: Build ISO from UUP dump package
+        
+      - name: Step-1 Build ISO from UUP dump package
         working-directory: ./WIN11_25H2_amd64
         shell: cmd
         run: |
           uup_download_windows.cmd
           
-      - name: Split Archive
+      - name: Step-2 Split Archive
         working-directory: .
         shell: pwsh
         run: |
@@ -85,7 +86,7 @@ jobs:
           Get-ChildItem -Recurse
           Write-Host "Split Archive Done..." -ForegroundColor Green
           
-      - name: Delete Old Release
+      - name: Step-3 Delete Old Release
         if: ${{ always() }}
         continue-on-error: true
         env:
@@ -93,7 +94,7 @@ jobs:
         shell: bash
         run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
         
-      - name: Delete past completed runs of this workflow
+      - name: Step-4 Delete past completed runs of this workflow
         if: ${{ always() }}
         continue-on-error: true
         env:
@@ -109,7 +110,7 @@ jobs:
                 gh run delete "$run_id" || true
               done
               
-      - name: Build New Release
+      - name: Step-5 Build New Release
         uses: softprops/action-gh-release@v3
         with:
           overwrite_files: true
