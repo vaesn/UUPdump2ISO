@@ -3,9 +3,13 @@ on: workflow_dispatch
 permissions:
   contents: write
   actions: write
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 jobs:
   WIN11_25H2_amd64:
     runs-on: windows-latest
+    timeout-minutes: 300
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -38,7 +42,7 @@ jobs:
           $EnvVars = @(
               "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
               "ISO_SIZEGB={0:N2} GB" -f $SizeInGB
-              "7zSIZE=$VolumeSizeArg"
+              "VOLUME_SIZE=$VolumeSizeArg"
               "ISO_NAME=$NewFileName"
               "ISO_PATH=$NewFilePath"
               "ISO_REVISION=$Revision"
@@ -70,6 +74,8 @@ jobs:
           Write-Host "Split Archive Done..." -ForegroundColor Green
           
       - name: Delete Old Release
+        if: ${{ always() }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -77,8 +83,10 @@ jobs:
         
       - name: Delete past completed runs of this workflow
         if: ${{ always() }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
           gh run list \
             --workflow "${{ github.workflow }}" \
@@ -86,7 +94,7 @@ jobs:
             --jq '.[] | select(.status == "completed") | .databaseId' \
             | while read -r run_id; do
                 [ "$run_id" = "${{ github.run_id }}" ] && continue
-                gh run delete "$run_id"
+                gh run delete "$run_id" || true
               done
               
       - name: Build New Release
@@ -101,10 +109,10 @@ jobs:
             - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
             - **File Size**: ${{ env.ISO_SIZEMB }} 、 ${{ env.ISO_SIZEGB }}
-            - **Volume Size**: ${{ env.7zSIZE }}
+            - **Volume Size**: ${{ env.VOLUME_SIZE }}
             ---
             ### 📦 下载说明
-            使用 7-Zip 进行分卷压缩（每卷 ${{ env.7zSIZE }}）。
+            使用 7-Zip 进行分卷压缩（每卷 ${{ env.VOLUME_SIZE }}）。
             **下载方式**:
             1. 下载所有 `.7z.001`, `.7z.002`, ... 等后缀的文件。
             2. 确保所有文件位于同一文件夹。
@@ -115,4 +123,4 @@ jobs:
           tag_name: ${{ env.REVISION_NAME }}
           name: ${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}
           files: |
-            ./dist_win11\${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}.7z.*
+            ./dist_win11/${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}.7z.*

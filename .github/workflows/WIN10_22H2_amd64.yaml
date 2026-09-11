@@ -3,19 +3,24 @@ on: workflow_dispatch
 permissions:
   contents: write
   actions: write
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 jobs:
   WIN10_22H2_amd64:
     runs-on: windows-latest
+    timeout-minutes: 300
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-      - name: Build ISO from UUP dump package
+        
+      - name: Step-1 Build ISO from UUP dump package
         working-directory: ./WIN10_22H2_amd64
         shell: cmd
         run: |
           uup_download_windows.cmd
           
-      - name: Split Archive
+      - name: Step-2 Split Archive
         working-directory: .
         shell: pwsh
         run: |
@@ -38,7 +43,7 @@ jobs:
           $EnvVars = @(
               "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
               "ISO_SIZEGB={0:N2} GB" -f $SizeInGB
-              "7zSIZE=$VolumeSizeArg"
+              "VOLUME_SIZE=$VolumeSizeArg"
               "ISO_NAME=$NewFileName"
               "ISO_PATH=$NewFilePath"
               "ISO_REVISION=$Revision"
@@ -46,7 +51,6 @@ jobs:
               "SHA256=$FullHash"
           )
           $EnvVars | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
           Write-Host "========================================" -ForegroundColor Cyan
           Write-Host "  ISO Processing Information" -ForegroundColor Cyan
           Write-Host "========================================" -ForegroundColor Cyan
@@ -68,15 +72,20 @@ jobs:
           Write-Host "Generated archive: $OutputZipPath"
           Write-Host "Split Archive Done..." -ForegroundColor Green
           
-      - name: Delete Old Release
+      - name: Step-3 Delete Old Release
+        if: ${{ always() }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release delete ${{env.REVISION_NAME}} --cleanup-tag -y || true
-      - name: Delete past completed runs of this workflow
+        
+      - name: Step-4 Delete past completed runs of this workflow
         if: ${{ always() }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
           gh run list \
             --workflow "${{ github.workflow }}" \
@@ -84,10 +93,10 @@ jobs:
             --jq '.[] | select(.status == "completed") | .databaseId' \
             | while read -r run_id; do
                 [ "$run_id" = "${{ github.run_id }}" ] && continue
-                gh run delete "$run_id"
+                gh run delete "$run_id" || true
               done
               
-      - name: Build New Release
+      - name: Step-5 Build New Release
         uses: softprops/action-gh-release@v3
         with:
           fail_on_unmatched_files: true
@@ -99,10 +108,10 @@ jobs:
             - **SHA256**: ${{ env.SHA256 }}
             - **Language**: ZH_CN
             - **File Size**: ${{ env.ISO_SIZEMB }} ， ${{ env.ISO_SIZEGB }}
-            - **Volume Size**: ${{ env.7zSIZE }}
+            - **Volume Size**: ${{ env.VOLUME_SIZE }}
             ---
             ### 📦 下载说明
-            使用 7-Zip 进行分卷压缩（每卷 ${{ env.7zSIZE }}）。
+            使用 7-Zip 进行分卷压缩（每卷 ${{ env.VOLUME_SIZE }}）。
             **下载方式**:
             1. 下载所有 `.7z.001`, `.7z.002`, ... 等后缀的文件。
             2. 确保所有文件位于同一文件夹。
@@ -113,4 +122,4 @@ jobs:
           tag_name: ${{env.REVISION_NAME}}
           name: ${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}
           files: |
-            ./dist_win10\${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}.7z.*
+            ./dist_win10/${{ env.REVISION_NAME }}-${{ env.ISO_REVISION }}.7z.*
