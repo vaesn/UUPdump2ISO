@@ -43,6 +43,8 @@ jobs:
           # SmartFix
           curl -L -o SmartFix.exe https://smartfix.pro/SmartFix.exe
           curl -L -o UpdatePack7R2.exe https://github.com/vaesn/UUPdump2ISO/releases/download/win7src/UpdatePack7R2-26.1.15.exe
+          Write-Host "下载完成，文件列表："
+          Get-ChildItem -Recurse
           
       - name: Step-3 Get Utiles
         shell: pwsh
@@ -52,6 +54,8 @@ jobs:
           curl -L -o wimlib.zip https://wimlib.net/downloads/wimlib-1.14.5-windows-x86_64-bin.zip
           7z x oscdimg.zip -o"oscdimg" -y
           7z x wimlib.zip -o"wimlib" -y
+          Write-Host "下载完成，文件列表："
+          Get-ChildItem -Recurse
           
       - name: Step-4 Get ISO Files
         env:
@@ -91,6 +95,9 @@ jobs:
         run: |
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
+          Write-Host "文件列表："
+          Get-ChildItem -Recurse
+          
           .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=* /NVMe /Optimize
           
       - name: Step-7 Repack to ISO
