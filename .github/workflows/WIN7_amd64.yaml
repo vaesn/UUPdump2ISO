@@ -2,9 +2,9 @@ name: WIN7_amd64_Ultimate_UpdatePack7R2
 on: workflow_dispatch
 permissions:
   contents: write
+  actions: write
 env:
   TAG_NAME: WIN7_amd64
-  BASE_DIR: D:\a\UUPdump2ISO\UUPdump2ISO
   FINAL_ISO_NAME: WIN7_amd64_Ultimate_UpdatePack7R2_260115
 jobs:
   WIN7_amd64_Ultimate_UpdatePack7R2:
@@ -30,7 +30,7 @@ jobs:
           # DirectX_June2010 [http://komisar.gin.by/tools/u/]
           gh release download win7src --repo vaesn/UUPdump2ISO --pattern "DirectX*.WA" --dir ./
           # dotNetFx48
-          gh release download latest --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
+          gh release download --repo abbodi1406/dotNetFx4xW7A --pattern "*.WA" --dir ./
           # dotNetFx48LP
           gh release download 19.04.13 --repo abbodi1406/dotNetFx4xW7A --pattern "*CHS.WA" --dir ./
           # vcredist [https://gitlab.com/stdout12/adns/-/releases] 
@@ -93,7 +93,7 @@ jobs:
         shell: pwsh
         working-directory: .
         run: |
-          .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\$env:FINAL_ISO_NAME.iso -lWIN7amd64Ultimate_UpdatePack7R2
+          .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\WIN7_amd64_Ultimate_UpdatePack7R2_260115.iso -lWIN7amd64Ultimate_UpdatePack7R2
           
       - name: Step-8 Split Archive
         shell: pwsh
@@ -115,8 +115,8 @@ jobs:
           $EnvVars | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           
           & 7z a -t7z -v$VolumeSizeArg -mx=0 .\${{ env.FINAL_ISO_NAME }}.7z .\dist\${{ env.FINAL_ISO_NAME }}.iso
-          Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force
-          Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force
+          Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force -ErrorAction SilentlyContinue
+          Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force -ErrorAction SilentlyContinue
               
       - name: Step-9 Delete Old Release
         env:
@@ -127,7 +127,7 @@ jobs:
       - name: Step-10 Delete past completed runs of this workflow
         if: ${{ always() }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh run list \
             --workflow "${{ github.workflow }}" \
