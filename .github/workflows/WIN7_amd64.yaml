@@ -64,12 +64,12 @@ jobs:
         working-directory: ./src
         run: |
           gh release download win7src --repo ${{ github.repository }} --pattern "*677408.7z.*" --pattern "autounattend.xml" --dir ./
-          Write-Host "下载完成，文件列表："
-          Get-ChildItem -Recurse
           7z x *.7z.001 -y
           Start-Sleep -Seconds 3
           Rename-Item -Path "*.iso" -NewName "win7.iso"
           Remove-Item -Path "*.7z.*" -Force
+          Write-Host "文件列表："
+          Get-ChildItem -Recurse
           7z x win7.iso -o"win7" -y
           Start-Sleep -Seconds 3
           Remove-Item -Path "*.iso" -Force
@@ -80,36 +80,50 @@ jobs:
         run: |
           chcp 65001
           dism /Get-ImageInfo /ImageFile:".\win7\sources\install.wim"
-          
-          dism /Export-Image /SourceImageFile:".\win7\sources\install.wim" /SourceIndex:4 /DestinationImageFile:".\install.wim" /Compress:fast /LogPath:".\dism_export.log" | Out-Null
+
+          dism /Export-Image `
+              /SourceImageFile:".\win7\sources\install.wim" `
+              /SourceIndex:4 `
+              /DestinationImageFile:".\install.wim" `
+              /Compress:fast `
+              /LogPath:".\dism_export.log" | Out-Null
 
           Write-Host "DISM Export Finished..."
           Remove-Item -Path ".\win7\sources\install.wim" -Force
           dism /Get-ImageInfo /ImageFile:".\install.wim"
           Move-Item -Path ".\autounattend.xml" -Destination ".\win7\" -Force
           Move-Item -Path ".\install.wim" -Destination ".\win7\sources\" -Force
-          
+      
       - name: Step-6 Integrate Updates By UpdatePack7R2
         shell: cmd
         working-directory: ./addons
         run: |
           set "FULL_INSTALL_DIR=%GITHUB_WORKSPACE%\src\win7\sources\install.wim"
           set "FULL_BOOT_DIR=%GITHUB_WORKSPACE%\src\win7\sources\boot.wim"
-          Write-Host "文件列表："
-          Get-ChildItem -Recurse
-          
+          cd
+          dir /s
+
           .\UpdatePack7R2.exe /WimFile=%FULL_INSTALL_DIR% /Boot=%FULL_BOOT_DIR% /Index=* /NVMe /Optimize
-          
+      
       - name: Step-7 Repack to ISO
         shell: pwsh
         working-directory: .
         run: |
-          .\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\WIN7_amd64_Ultimate_UpdatePack7R2_260115.iso -lWIN7amd64Ultimate_UpdatePack7R2
+          #.\utils\oscdimg\oscdimg.exe -m -u2 -o -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin .\src\win7 .\dist\WIN7_amd64_Ultimate_UpdatePack7R2_260115.iso -lWIN7amd64Ultimate_UpdatePack7R2
+          .\utils\oscdimg\oscdimg.exe `
+              -m `
+              -u2 `
+              -o `
+              -bootdata:2#p0,e,b.\src\win7\boot\etfsboot.com#pEF,e,b.\src\win7\efi\microsoft\boot\efisys.bin `
+              .\src\win7 `
+              .\dist\WIN7_amd64_Ultimate_UpdatePack7R2_260115.iso `
+              -lWIN7amd64Ultimate_UpdatePack7R2
           
       - name: Step-8 Split Archive
         shell: pwsh
         working-directory: .
         run: |
+          Remove-Item -Path ".\src\win7" -Recurse -Force
           $IsoFile = Get-ChildItem -Path ".\dist" -Filter "*.iso" -File | Select-Object -First 1
           $FullHash = (Get-FileHash -Path $IsoFile.FullName -Algorithm SHA256).Hash.ToLower()
           $FileFullPath = $IsoFile.FullName
@@ -153,6 +167,7 @@ jobs:
           }
           Write-Host "Split Archive Done..." -ForegroundColor Green
           Get-ChildItem -Recurse
+          Remove-Item -Path ".\dist\*.iso" -Force
           Move-Item -Path "C:\WINDOWS\UpdatePack7.log" -Destination ".\UpdatePack7.log" -Force -ErrorAction SilentlyContinue
           Move-Item -Path ".\src\dism_export.log" -Destination ".\dism_export.log" -Force -ErrorAction SilentlyContinue
               
