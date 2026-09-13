@@ -38,7 +38,7 @@ jobs:
           $SizeInBytes = $IsoFile.Length
           $SizeInMB = $SizeInBytes / 1MB
           $SizeInGB = $SizeInBytes / 1GB
-          $VolumeSizeVal = [int][Math]::Ceiling($SizeInMB / 4) + 32
+          $VolumeSizeVal = [int][Math]::Ceiling($SizeInMB / 5) + 32
           $VolumeSizeArg = "${VolumeSizeVal}M"
           $EnvVars = @(
               "ISO_SIZEMB={0:N2} MB" -f $SizeInMB
